@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nivada - AI Complaint System</title>
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome for subtle icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            /* Color Palette */
+            --primary-gradient: linear-gradient(135deg, #10a37f 0%, #0d8a6b 100%);
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --accent-color: #10a37f;
+            --accent-soft: rgba(16, 163, 127, 0.1);
+            --danger: #ef4444;
+            
+            /* Shadows & Transitions */
+            --shadow-md: 0 10px 25px -5px rgba(0, 0, 0, 0.04), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+            --shadow-lg: 0 20px 25px -5px rgba(16, 163, 127, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            background-image: 
+                radial-gradient(circle at 100% 0%, rgba(16, 163, 127, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 0% 100%, rgba(16, 163, 127, 0.03) 0%, transparent 40%);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* Header Navigation */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 40px;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .brand {
+            font-weight: 800;
+            font-size: 1.4rem;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            letter-spacing: -0.04em;
+        }
+
+        .brand i {
+            background: var(--primary-gradient);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 1.6rem;
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 12px;
+        }
+
+        .nav-btn {
+            background: transparent;
+            border: 1px solid transparent;
+            padding: 10px 16px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: var(--transition);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-btn:hover {
+            background-color: var(--accent-soft);
+            color: var(--accent-color);
+        }
+
+        .logout-btn {
+            color: var(--danger);
+        }
+
+        .logout-btn:hover {
+            background-color: rgba(239, 68, 68, 0.08);
+            color: var(--danger);
+        }
+
+        /* Main Center Content */
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 60px 20px;
+            max-width: 800px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        .welcome-container {
+            text-align: center;
+            margin-bottom: 48px;
+            animation: fadeInDown 0.6s ease-out;
+        }
+
+        .welcome-msg {
+            font-size: 2.8rem;
+            font-weight: 800;
+            letter-spacing: -0.05em;
+            margin-bottom: 16px;
+            color: #0f172a;
+        }
+
+        .welcome-msg span {
+            background: var(--primary-gradient);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            max-width: 500px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        /* Form Card Styling */
+        .form-card {
+            width: 100%;
+            background: var(--card-bg);
+            border-radius: 24px;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-color);
+            padding: 40px;
+            transition: var(--transition);
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        .form-card:hover {
+            box-shadow: var(--shadow-lg);
+        }
+
+        .form-group {
+            margin-bottom: 28px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #334155;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .form-group label i {
+            color: var(--accent-color);
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            gap: 10px;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 14px 18px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            font-size: 1rem;
+            transition: var(--transition);
+            outline: none;
+            background: #fcfdfe;
+            color: var(--text-main);
+        }
+
+        .input-field:focus {
+            border-color: var(--accent-color);
+            background: #fff;
+            box-shadow: 0 0 0 4px var(--accent-soft);
+        }
+
+        .location-btn {
+            background: var(--accent-soft);
+            border: 1px solid var(--accent-color);
+            color: var(--accent-color);
+            padding: 0 16px;
+            border-radius: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+            white-space: nowrap;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .location-btn:hover {
+            background: var(--accent-color);
+            color: white;
+        }
+
+        /* Satellite Map Mockup Section */
+        .map-preview {
+            display: none;
+            width: 100%;
+            height: 200px;
+            background-color: #cbd5e1;
+            border-radius: 12px;
+            margin-top: 15px;
+            overflow: hidden;
+            position: relative;
+            background-image: url('https://images.unsplash.com/photo-1526778548025-fa2f459cd5ce?q=80&w=1000&auto=format&fit=crop'); /* Placeholder satellite-like texture */
+            background-size: cover;
+            background-position: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .map-preview::after {
+            content: '📍';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -100%);
+            font-size: 2rem;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .map-overlay {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.6);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        textarea.input-field {
+            min-height: 140px;
+            resize: vertical;
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            margin: 30px 0;
+            color: #94a3b8;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .divider::before, .divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 2px solid #f1f5f9;
+        }
+
+        .divider:not(:empty)::before { margin-right: 20px; }
+        .divider:not(:empty)::after { margin-left: 20px; }
+
+        .file-upload-wrapper {
+            position: relative;
+            border: 2px dashed #cbd5e1;
+            border-radius: 16px;
+            padding: 30px;
+            text-align: center;
+            transition: var(--transition);
+            cursor: pointer;
+            background: #f8fafc;
+        }
+
+        .file-upload-wrapper:hover {
+            border-color: var(--accent-color);
+            background: var(--accent-soft);
+            transform: scale(1.01);
+        }
+
+        .file-upload-wrapper i {
+            font-size: 2rem;
+            background: var(--primary-gradient);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 12px;
+        }
+
+        .file-upload-wrapper input[type="file"] {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .file-name-display {
+            font-size: 0.9rem;
+            color: var(--accent-color);
+            margin-top: 10px;
+            font-weight: 600;
+        }
+
+        .submit-btn {
+            width: 100%;
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 14px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            transition: var(--transition);
+            margin-top: 10px;
+            box-shadow: 0 4px 15px rgba(16, 163, 127, 0.25);
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(16, 163, 127, 0.35);
+            filter: brightness(1.1);
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Footer */
+        footer {
+            padding: 32px;
+            text-align: center;
+            font-size: 0.85rem;
+            color: #94a3b8;
+            font-weight: 500;
+        }
+
+        /* Animations */
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 640px) {
+            header { padding: 12px 20px; }
+            .welcome-msg { font-size: 2rem; }
+            .nav-menu { gap: 6px; }
+            .nav-btn span { display: none; }
+            .nav-btn { padding: 12px; border-radius: 50%; }
+            .form-card { padding: 24px; border-radius: 20px; }
+            .input-wrapper { flex-direction: column; }
+            .location-btn { padding: 12px; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="brand">
+            <i class="fas fa-shield-halved"></i>
+            Nivada
+        </div>
+        <div class="nav-menu">
+            <a href="/profile" class="nav-btn" title="Profile">
+                <i class="far fa-user"></i> <span>Profile</span>
+            </a>
+            <a href="/dashboard" class="nav-btn" title="Dashboard">
+                <i class="fas fa-chart-line"></i> <span>Dashboard</span>
+            </a>
+            <a href="/settings" class="nav-btn" title="Settings">
+                <i class="fas fa-sliders"></i> <span>Settings</span>
+            </a>
+            <button onclick="handleLogout()" class="nav-btn logout-btn" title="Logout">
+                <i class="fas fa-arrow-right-from-bracket"></i> <span>Logout</span>
+            </a>
+        </div>
+    </header>
+
+    <main>
+        <div class="welcome-container">
+            <h1 class="welcome-msg">Submit Your <span>Complaint</span></h1>
+            <p class="subtitle">Our AI-driven system ensures your concerns reach the right desk, instantly.</p>
+        </div>
+        
+        <div class="form-card">
+            <form action="/submit" method="POST" enctype="multipart/form-data" id="complaintForm">
+                <!-- Mandatory Address & Satellite Pin -->
+                <div class="form-group">
+                    <label for="address"><i class="fas fa-location-dot"></i> Complaint Address</label>
+                    <div class="input-wrapper">
+                        <input 
+                            type="text" 
+                            name="address" 
+                            id="address" 
+                            class="input-field" 
+                            placeholder="e.g. 123 Green Street, Sector 4"
+                            required
+                        >
+                        <button type="button" class="location-btn" id="pinLocationBtn">
+                            <i class="fas fa-satellite"></i> <span>Pin on Map</span>
+                        </button>
+                    </div>
+                    <!-- Satellite View Container -->
+                    <div class="map-preview" id="mapContainer">
+                        <div class="map-overlay">Satellite View</div>
+                    </div>
+                    <input type="hidden" name="latitude" id="lat">
+                    <input type="hidden" name="longitude" id="lng">
+                </div>
+
+                <!-- Complaint Content: Text -->
+                <div class="form-group">
+                    <label for="complaint_text"><i class="fas fa-pen-nib"></i> Complaint Details</label>
+                    <textarea 
+                        name="complaint_text" 
+                        id="complaint_text" 
+                        class="input-field" 
+                        placeholder="What happened? Please be specific..."
+                    ></textarea>
+                </div>
+
+                <div class="divider">OR UPLOAD PROOF</div>
+
+                <!-- Complaint Content: Image -->
+                <div class="form-group">
+                    <div class="file-upload-wrapper">
+                        <i class="fas fa-image"></i>
+                        <p style="font-size: 1rem; color: #475569; font-weight: 600;">Add image evidence</p>
+                        <p style="font-size: 0.8rem; color: #94a3b8; margin-top: 4px;">PNG, JPG up to 10MB</p>
+                        <input type="file" name="complaint_image" id="complaint_image" accept="image/*">
+                        <div id="fileName" class="file-name-display"></div>
+                    </div>
+                </div>
+
+                <button type="submit" class="submit-btn">
+                    <span>Submit to AI Analysis</span>
+                    <i class="fas fa-wand-magic-sparkles"></i>
+                </button>
+            </form>
+        </div>
+    </main>
+
+    <footer>
+        © 2026 Nivada System | Powered by Advanced AI
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const isLoggedIn = sessionStorage.getItem('isLoggedIn') || 'true';
+            if (isLoggedIn === 'false') {
+                window.location.href = 'login.html';
+            }
+
+            const fileInput = document.getElementById('complaint_image');
+            const fileNameDisplay = document.getElementById('fileName');
+            const pinBtn = document.getElementById('pinLocationBtn');
+            const mapContainer = document.getElementById('mapContainer');
+            const addressInput = document.getElementById('address');
+
+            // Handle Satellite Pin Logic
+            pinBtn.addEventListener('click', () => {
+                if (navigator.geolocation) {
+                    pinBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Locating...';
+                    navigator.geolocation.getCurrentPosition(
+                        (position) => {
+                            const lat = position.coords.latitude;
+                            const lng = position.coords.longitude;
+                            
+                            document.getElementById('lat').value = lat;
+                            document.getElementById('lng').value = lng;
+                            
+                            // Show map preview
+                            mapContainer.style.display = 'block';
+                            pinBtn.innerHTML = '<i class="fas fa-check"></i> Pinned';
+                            pinBtn.style.background = '#dcfce7';
+                            pinBtn.style.borderColor = '#22c55e';
+                            pinBtn.style.color = '#15803d';
+
+                            // Auto-fill address if empty (simulation)
+                            if (!addressInput.value) {
+                                addressInput.value = `Near ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+                            }
+                        },
+                        () => {
+                            alert("Unable to retrieve your location. Please type the address manually.");
+                            pinBtn.innerHTML = '<i class="fas fa-satellite"></i> <span>Pin on Map</span>';
+                        }
+                    );
+                } else {
+                    alert("Geolocation is not supported by your browser.");
+                }
+            });
+
+            fileInput.addEventListener('change', function() {
+                if (this.files && this.files.length > 0) {
+                    fileNameDisplay.innerHTML = `<i class="fas fa-check-circle"></i> Selected: ${this.files[0].name}`;
+                } else {
+                    fileNameDisplay.textContent = '';
+                }
+            });
+
+            const form = document.getElementById('complaintForm');
+            form.addEventListener('submit', function(e) {
+                const address = document.getElementById('address').value.trim();
+                const text = document.getElementById('complaint_text').value.trim();
+                const image = document.getElementById('complaint_image').files.length;
+
+                if (!address) {
+                    e.preventDefault();
+                    alert("Please enter a valid complaint address.");
+                    return;
+                }
+
+                if (!text && image === 0) {
+                    e.preventDefault();
+                    alert("Please provide either a description or an image of your complaint.");
+                    return;
+                }
+
+                const btn = this.querySelector('.submit-btn');
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyzing...';
+                btn.style.opacity = '0.7';
+                btn.disabled = true;
+            });
+        });
+
+        function handleLogout() {
+            window.location.href = '/logout';
+        }
+    </script>
+</body>
+</html>

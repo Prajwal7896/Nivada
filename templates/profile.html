@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Profile | Nivada Smart Complaint System</title>
+    <!-- Google Fonts: Poppins -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-blue: #1E3A8A;
+            --accent-green: #10B981;
+            --bg-light: #F8FAFC;
+            --text-dark: #1E293B;
+            --text-muted: #64748B;
+            --white: #FFFFFF;
+            --danger-red: #EF4444;
+            --border-color: #E2E8F0;
+            --card-shadow: 0 10px 25px -5px rgba(30, 58, 138, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Navbar Header */
+        header {
+            background: var(--white);
+            padding: 1rem 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+
+        .brand {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-blue);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 20px;
+        }
+
+        .nav-link {
+            text-decoration: none;
+            color: var(--text-muted);
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: var(--transition);
+        }
+
+        .nav-link:hover, .nav-link.active {
+            color: var(--primary-blue);
+        }
+
+        /* Main Content Container */
+        .container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 20px;
+        }
+
+        /* Profile Card */
+        .profile-card {
+            background: var(--white);
+            width: 100%;
+            max-width: 900px;
+            border-radius: 15px;
+            display: flex;
+            overflow: hidden;
+            box-shadow: var(--card-shadow);
+            animation: slideUp 0.6s ease-out;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Left Section: Avatar */
+        .profile-sidebar {
+            background: linear-gradient(135deg, var(--primary-blue) 0%, #1e40af 100%);
+            width: 35%;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            color: var(--white);
+            position: relative;
+        }
+
+        .avatar-wrapper {
+            position: relative;
+            margin-bottom: 20px;
+            cursor: pointer;
+        }
+
+        .avatar-container {
+            width: 130px;
+            height: 130px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 3rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            backdrop-filter: blur(5px);
+            overflow: hidden;
+            position: relative;
+            transition: var(--transition);
+        }
+
+        .avatar-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: none;
+        }
+
+        .avatar-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: var(--transition);
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        .avatar-wrapper:hover .avatar-overlay {
+            opacity: 1;
+        }
+
+        #imageInput {
+            display: none;
+        }
+
+        .user-name {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .user-role {
+            font-size: 0.85rem;
+            background: var(--accent-green);
+            padding: 4px 15px;
+            border-radius: 20px;
+            font-weight: 500;
+            margin-bottom: 30px;
+        }
+
+        .sidebar-meta {
+            width: 100%;
+            margin-top: auto;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
+
+        /* Right Section: Details */
+        .profile-details {
+            flex: 1;
+            padding: 50px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--primary-blue);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .info-item label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 5px;
+        }
+
+        .info-item p {
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--text-dark);
+            min-height: 24px;
+        }
+
+        /* Input styling for Edit Mode */
+        .edit-input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 0.95rem;
+            outline: none;
+            transition: var(--transition);
+            display: none; /* Hidden by default */
+        }
+
+        .edit-input:focus {
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
+        }
+
+        /* Action Buttons */
+        .action-area {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-decoration: none;
+            border: none;
+        }
+
+        .btn-primary { background-color: var(--primary-blue); color: var(--white); }
+        .btn-primary:hover { background-color: #1e40af; transform: translateY(-2px); }
+        
+        .btn-success { background-color: var(--accent-green); color: var(--white); display: none; }
+        .btn-success:hover { background-color: #0d9668; transform: translateY(-2px); }
+
+        .btn-outline {
+            background-color: transparent;
+            border: 2px solid var(--border-color);
+            color: var(--text-muted);
+        }
+        .btn-outline:hover { border-color: var(--primary-blue); color: var(--primary-blue); }
+
+        .btn-danger {
+            background-color: transparent;
+            border: 2px solid var(--danger-red);
+            color: var(--danger-red);
+        }
+        .btn-danger:hover { background-color: var(--danger-red); color: var(--white); transform: translateY(-2px); }
+
+        /* Animation for editing state */
+        .is-editing .view-mode { display: none; }
+        .is-editing .edit-mode { display: block; }
+        .is-editing .edit-input { display: block; }
+        .is-editing .btn-edit { display: none; }
+        .is-editing .btn-success { display: inline-flex; }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .profile-card { flex-direction: column; }
+            .profile-sidebar { width: 100%; padding: 40px 20px; }
+            .profile-details { padding: 30px; }
+            .info-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <a href="/" class="brand">
+            <i class="fas fa-shield-halved"></i> Nivada
+        </a>
+        <nav class="nav-links">
+            <a href="/dashboard" class="nav-link">Dashboard</a>
+            <a href="/submit" class="nav-link">New Complaint</a>
+            <a href="/profile" class="nav-link active">Profile</a>
+        </nav>
+    </header>
+
+    <div class="container">
+        <form id="profileForm" action="/update_profile" method="POST" class="profile-card">
+            <!-- Sidebar / Avatar Section -->
+            <div class="profile-sidebar">
+                <label for="imageInput" class="avatar-wrapper" title="Click to change photo">
+                    <div class="avatar-container" id="userAvatar">
+                        <span id="initials"></span>
+                        <img id="profilePreview" src="" alt="Profile Photo">
+                        <div class="avatar-overlay">
+                            <i class="fas fa-camera"></i>
+                        </div>
+                    </div>
+                    <input type="file" id="imageInput" name="profile_image" accept="image/*">
+                </label>
+
+                <h2 class="user-name" id="sidebarName">{{ user.username }}</h2>
+                <span class="user-role">Verified Citizen</span>
+                
+                <div class="sidebar-meta">
+                    <p><i class="far fa-calendar-check"></i> Member since {{ user.created_at or '2026' }}</p>
+                </div>
+            </div>
+
+            <!-- Main Details Section -->
+            <div class="profile-details">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <i class="fas fa-user-circle"></i> Personal Information
+                    </h3>
+                    <button type="button" class="btn btn-outline btn-edit" id="editToggle">
+                        <i class="fas fa-user-edit"></i> Edit
+                    </button>
+                </div>
+
+                <div class="info-grid">
+                    <div class="info-item">
+                        <label>Username</label>
+                        <p class="view-mode" id="view-username">{{ user.username }}</p>
+                        <input type="text" name="username" class="edit-input" id="input-username" value="{{ user.username }}">
+                    </div>
+                    <div class="info-item">
+                        <label>Email Address</label>
+                        <p class="view-mode" id="view-email">{{ user.email }}</p>
+                        <input type="email" name="email" class="edit-input" id="input-email" value="{{ user.email }}">
+                    </div>
+                    <div class="info-item">
+                        <label>Phone Number</label>
+                        <p class="view-mode" id="view-phone">{{ user.phone or '+91 98XXX XXXXX' }}</p>
+                        <input type="text" name="phone" class="edit-input" id="input-phone" value="{{ user.phone or '' }}" placeholder="+91 00000 00000">
+                    </div>
+                    <div class="info-item">
+                        <label>Account Status</label>
+                        <p><i class="fas fa-circle" style="color: var(--accent-green); font-size: 0.7rem;"></i> Active</p>
+                    </div>
+                </div>
+
+                <h3 class="section-title" style="margin-bottom: 25px;">
+                    <i class="fas fa-cog"></i> Account Actions
+                </h3>
+                
+                <div class="action-area">
+                    <!-- Save Button (Visible in Edit Mode) -->
+                    <button type="submit" class="btn btn-success" id="saveBtn">
+                        <i class="fas fa-save"></i> Save Changes
+                    </button>
+                    
+                    <!-- Cancel Button (Visible in Edit Mode) -->
+                    <button type="button" class="btn btn-outline edit-mode" id="cancelBtn" style="display:none;">
+                        Cancel
+                    </button>
+
+                    <!-- Default View Buttons -->
+                    <button type="button" class="btn btn-outline view-mode">
+                        <i class="fas fa-key"></i> Change Password
+                    </button>
+                    <a href="/logout" class="btn btn-danger view-mode">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('profileForm');
+            const editToggle = document.getElementById('editToggle');
+            const cancelBtn = document.getElementById('cancelBtn');
+            const initialsSpan = document.getElementById('initials');
+            const profilePreview = document.getElementById('profilePreview');
+            const imageInput = document.getElementById('imageInput');
+            const sidebarName = document.getElementById('sidebarName');
+
+            // --- 1. INITIALS LOGIC ---
+            const generateInitials = (name) => {
+                if (!name || name.startsWith('{')) return "JD";
+                const parts = name.split(/[._\s]/);
+                let initials = parts.length >= 2 ? parts[0][0] + parts[1][0] : parts[0].substring(0, 2);
+                return initials.toUpperCase();
+            };
+            initialsSpan.textContent = generateInitials("{{ user.username }}");
+
+            // --- 2. EDIT MODE TOGGLE ---
+            editToggle.addEventListener('click', () => {
+                form.classList.add('is-editing');
+                cancelBtn.style.display = 'inline-flex';
+            });
+
+            cancelBtn.addEventListener('click', () => {
+                form.classList.remove('is-editing');
+                cancelBtn.style.display = 'none';
+                // Reset inputs to original view values if needed
+            });
+
+            // --- 3. SAVE / SUBMIT LOGIC ---
+            form.addEventListener('submit', (e) => {
+                
+                const saveBtn = document.getElementById('saveBtn');
+                saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+                saveBtn.disabled = true;
+
+                // Simulate Backend Save
+                setTimeout(() => {
+                    // Update View Mode text with new Input values
+                    const newUsername = document.getElementById('input-username').value;
+                    const newEmail = document.getElementById('input-email').value;
+                    const newPhone = document.getElementById('input-phone').value;
+
+                    document.getElementById('view-username').textContent = newUsername;
+                    document.getElementById('view-email').textContent = newEmail;
+                    document.getElementById('view-phone').textContent = newPhone || '+91 98XXX XXXXX';
+                    sidebarName.textContent = newUsername;
+                    initialsSpan.textContent = generateInitials(newUsername);
+
+                    // Revert UI
+                    form.classList.remove('is-editing');
+                    cancelBtn.style.display = 'none';
+                    saveBtn.innerHTML = '<i class="fas fa-save"></i> Save Changes';
+                    saveBtn.disabled = false;
+
+                    // Optional: Show Success Notification
+                    console.log("Profile Updated Successfully");
+                }, 1000);
+            });
+
+            // --- 4. IMAGE UPLOAD PREVIEW ---
+            imageInput.addEventListener('change', function() {
+                const file = this.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        profilePreview.src = e.target.result;
+                        profilePreview.style.display = 'block';
+                        initialsSpan.style.display = 'none';
+                    }
+                    reader.readAsDataURL(file);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

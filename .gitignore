@@ -1,0 +1,4 @@
+venv/
+fast_model/
+*.safetensors
+__pycache__/

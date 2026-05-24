@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register | Nivada Smart Complaint System</title>
+    <!-- Google Fonts: Poppins -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- External CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    
+    <style>
+        /* Shared design tokens with login.html */
+        :root {
+            --primary-blue: #1E3A8A;
+            --secondary-green: #10B981;
+            --bg-light: #F1F5F9;
+            --text-dark: #1E293B;
+            --text-muted: #64748B;
+            --white: #FFFFFF;
+            --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            --danger-red: #EF4444;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-dark);
+            padding: 40px 20px;
+        }
+
+        .register-container {
+            width: 100%;
+            max-width: 500px;
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Brand Header */
+        .brand-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .brand-logo {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary-blue);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .tagline {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+
+        /* Register Card */
+        .register-card {
+            background: var(--white);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+        }
+
+        .register-card h2 {
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--primary-blue);
+        }
+
+        .register-card p {
+            color: var(--text-muted);
+            margin-bottom: 30px;
+            font-size: 0.95rem;
+        }
+
+        /* Form Styling */
+        .form-group {
+            margin-bottom: 18px;
+            position: relative;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+            font-size: 0.85rem;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-wrapper i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            transition: 0.3s;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 11px 15px 11px 45px;
+            border: 2px solid #E2E8F0;
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 4px rgba(30, 58, 138, 0.1);
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: var(--text-muted);
+            z-index: 10;
+        }
+
+        /* Password Strength Meter */
+        .strength-meter {
+            height: 4px;
+            width: 100%;
+            background: #E2E8F0;
+            margin-top: 8px;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .strength-bar {
+            height: 100%;
+            width: 0%;
+            transition: 0.3s ease;
+        }
+
+        .strength-text {
+            font-size: 0.75rem;
+            margin-top: 4px;
+            display: block;
+            text-align: right;
+            color: var(--text-muted);
+        }
+
+        /* Registration Button */
+        .btn-register {
+            width: 100%;
+            padding: 14px;
+            background: var(--primary-blue);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .btn-register:hover {
+            background: #1a306e;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(30, 58, 138, 0.3);
+        }
+
+        /* Checkbox Styling */
+        .terms-group {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin-bottom: 25px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            cursor: pointer;
+        }
+
+        .terms-group input {
+            margin-top: 3px;
+        }
+
+        .terms-group a {
+            color: var(--primary-blue);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        /* Alert Boxes */
+        .alert {
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .alert-danger { background: #FEE2E2; color: #991B1B; border: 1px solid #FECACA; }
+        .alert-success { background: #DCFCE7; color: #166534; border: 1px solid #BBF7D0; }
+
+        /* Login Link */
+        .login-link {
+            text-align: center;
+            margin-top: 25px;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .login-link a {
+            color: var(--secondary-green);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .login-link a:hover { text-decoration: underline; }
+
+        .register-footer {
+            text-align: center;
+            margin-top: 40px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        /* Mobile */
+        @media (max-width: 480px) {
+            .register-card { padding: 30px 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="register-container">
+        <!-- 1. Header / Logo -->
+        <header class="brand-header">
+            <a href="/" class="brand-logo">
+                <i class="fas fa-shield-halved"></i> Nivada
+            </a>
+            <p class="tagline">Create your secure citizen account</p>
+        </header>
+
+        <!-- 2. Register Card -->
+        <main class="register-card">
+            <h2>Get Started</h2>
+            <p>Join the smart governance platform today.</p>
+
+            <!-- 5. Validation / Alerts -->
+            <!-- Flask Flash Messaging -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category if category != 'error' else 'danger' }}">
+                            <i class="fas {{ 'fa-circle-check' if category == 'success' else 'fa-circle-exclamation' }}"></i>
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <!-- Form -->
+            <form method="POST" action="/register" id="registrationForm">
+                <!-- 👤 Username -->
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <div class="input-wrapper">
+                        <input type="text" id="username" name="username" class="form-control" placeholder="John Doe" required>
+                        <i class="fas fa-user"></i>
+                    </div>
+                </div>
+
+                <!-- 📧 Email -->
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <div class="input-wrapper">
+                        <input type="email" id="email" name="email" class="form-control" placeholder="name@example.com" required>
+                        <i class="fas fa-envelope"></i>
+                    </div>
+                </div>
+
+                <!-- 🔒 Password -->
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <div class="input-wrapper">
+                        <input type="password" id="password" name="password" class="form-control" placeholder="••••••••" required>
+                        <i class="fas fa-lock"></i>
+                        <span class="toggle-password" onclick="togglePass('password', 'eye1')">
+                            <i class="fas fa-eye" id="eye1"></i>
+                        </span>
+                    </div>
+                    <!-- Password strength indicator -->
+                    <div class="strength-meter">
+                        <div class="strength-bar" id="strengthBar"></div>
+                    </div>
+                    <span class="strength-text" id="strengthText">Strength: Weak</span>
+                </div>
+
+                <!-- 🔒 Confirm Password -->
+                <div class="form-group">
+                    <label for="confirm_password">Confirm Password</label>
+                    <div class="input-wrapper">
+                        <input type="password" id="confirm_password" name="confirm_password" class="form-control" placeholder="••••••••" required>
+                        <i class="fas fa-check-double"></i>
+                        <span class="toggle-password" onclick="togglePass('confirm_password', 'eye2')">
+                            <i class="fas fa-eye" id="eye2"></i>
+                        </span>
+                    </div>
+                    <span id="match-msg" style="font-size: 0.75rem; display: none; margin-top: 5px;"></span>
+                </div>
+
+                <!-- 4. Extra Options: Terms -->
+                <label class="terms-group">
+                    <input type="checkbox" required>
+                    <span>I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.</span>
+                </label>
+
+                <!-- 3. Register Button -->
+                <button type="submit" class="btn-register" id="regBtn">
+                    <span>Create Account</span>
+                    <i class="fas fa-user-plus"></i>
+                </button>
+            </form>
+
+            <div class="login-link">
+                Already have an account? <a href="/login">Login here</a>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="register-footer">
+            <p>&copy; 2026 Nivada. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    
+    <!-- 🔐 UX FEATURES SCRIPT -->
+    <script>
+        // Toggle Password Visibility
+        function togglePass(id, eyeId) {
+            const input = document.getElementById(id);
+            const icon = document.getElementById(eyeId);
+            if (input.type === "password") {
+                input.type = "text";
+                icon.classList.replace("fa-eye", "fa-eye-slash");
+            } else {
+                input.type = "password";
+                icon.classList.replace("fa-eye-slash", "fa-eye");
+            }
+        }
+
+        // Password Strength Indicator
+        const password = document.getElementById('password');
+        const strengthBar = document.getElementById('strengthBar');
+        const strengthText = document.getElementById('strengthText');
+
+        password.addEventListener('input', () => {
+            const val = password.value;
+            let strength = 0;
+            if (val.length > 6) strength++;
+            if (val.match(/[A-Z]/)) strength++;
+            if (val.match(/[0-9]/)) strength++;
+            if (val.match(/[^A-Za-z0-9]/)) strength++;
+
+            const colors = ['#EF4444', '#F59E0B', '#3B82F6', '#10B981'];
+            const texts = ['Weak', 'Fair', 'Good', 'Strong'];
+
+            strengthBar.style.width = (strength * 25) + '%';
+            strengthBar.style.backgroundColor = colors[strength-1] || '#E2E8F0';
+            strengthText.innerText = 'Strength: ' + (texts[strength-1] || 'Weak');
+            strengthText.style.color = colors[strength-1] || '#64748B';
+        });
+
+        // Real-time Confirm Password Validation
+        const confirm = document.getElementById('confirm_password');
+        const matchMsg = document.getElementById('match-msg');
+
+        confirm.addEventListener('input', () => {
+            if (confirm.value === "") {
+                matchMsg.style.display = 'none';
+            } else if (confirm.value === password.value) {
+                matchMsg.style.display = 'block';
+                matchMsg.innerText = 'Passwords match';
+                matchMsg.style.color = '#10B981';
+            } else {
+                matchMsg.style.display = 'block';
+                matchMsg.innerText = 'Passwords do not match';
+                matchMsg.style.color = '#EF4444';
+            }
+        });
+
+        // Form Submission Loading State
+        document.getElementById('registrationForm').addEventListener('submit', function(e) {
+            if (password.value !== confirm.value) {
+                e.preventDefault();
+                alert("Passwords do not match!");
+                return;
+            }
+            const btn = document.getElementById('regBtn');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating Account...';
+            btn.style.opacity = '0.8';
+            btn.style.pointerEvents = 'none';
+        });
+    </script>
+</body>
+</html>
