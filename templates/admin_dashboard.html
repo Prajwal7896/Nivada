@@ -17,7 +17,6 @@
 <body class="bg-slate-50 text-slate-900">
 
     <div class="flex h-screen overflow-hidden">
-        <!-- Sidebar -->
         <aside class="hidden md:flex flex-col w-64 bg-slate-900 text-white transition-all duration-300">
             <div class="p-6 flex items-center gap-3 border-b border-slate-800">
                 <div class="bg-indigo-500 p-2 rounded-lg">
@@ -54,9 +53,7 @@
             </div>
         </aside>
 
-        <!-- Main Content -->
         <main class="flex-1 flex flex-col min-w-0 overflow-hidden">
-            <!-- Top Navbar -->
             <header class="bg-white border-b border-slate-200 h-16 flex items-center justify-between px-6 shrink-0">
                 <div class="flex items-center gap-4">
                     <button class="md:hidden text-slate-600 text-xl"><i class="fas fa-bars"></i></button>
@@ -75,10 +72,8 @@
                 </div>
             </header>
 
-            <!-- Dashboard Content -->
             <div class="flex-1 overflow-y-auto p-6 custom-scrollbar">
                 
-                <!-- Welcome Stats Section -->
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                     <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow">
                         <div class="flex items-center justify-between mb-4">
@@ -126,7 +121,6 @@
                 </div>
 
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <!-- Complaint Table -->
                     <div class="lg:col-span-2 space-y-6">
                         <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                             <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
@@ -179,7 +173,6 @@
                         </div>
                     </div>
 
-                    <!-- Analytics Sidebar -->
                     <div class="space-y-6">
                         <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
                             <h3 class="font-bold text-slate-800 mb-6 flex items-center gap-2">
@@ -187,7 +180,6 @@
                                 Category Distribution
                             </h3>
                             <div class="space-y-4">
-                                <!-- Category Progress Bars -->
                                 <div class="space-y-2">
                                     <div class="flex justify-between text-xs font-semibold">
                                         <span class="text-slate-600">Urgent Issues</span>
@@ -218,7 +210,6 @@
                             </div>
                         </div>
 
-                        <!-- System Status -->
                         <div class="bg-indigo-600 p-6 rounded-2xl shadow-lg shadow-indigo-200 text-white relative overflow-hidden">
                             <i class="fas fa-brain absolute -right-4 -bottom-4 text-7xl opacity-20"></i>
                             <h4 class="text-xs font-bold uppercase tracking-widest opacity-80 mb-1">AI Engine Status</h4>

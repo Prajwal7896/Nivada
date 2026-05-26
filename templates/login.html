@@ -4,15 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login | Nivada Smart Complaint System</title>
-    <!-- Google Fonts: Poppins -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- External CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     
     <style>
-        /* Internalized styles to ensure the Canvas preview matches the design */
         :root {
             --primary-blue: #1E3A8A;
             --secondary-green: #10B981;
@@ -36,7 +32,6 @@
             padding: 20px;
         }
 
-        /* Login Container */
         .login-container {
             width: 100%;
             max-width: 450px;
@@ -48,7 +43,6 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Logo Branding */
         .brand-header {
             text-align: center;
             margin-bottom: 2rem;
@@ -71,7 +65,6 @@
             letter-spacing: 0.5px;
         }
 
-        /* Login Card */
         .login-card {
             background: var(--white);
             padding: 40px;
@@ -92,7 +85,6 @@
             font-size: 0.95rem;
         }
 
-        /* Form Styling */
         .form-group {
             margin-bottom: 20px;
             position: relative;
@@ -138,7 +130,6 @@
             color: var(--primary-blue);
         }
 
-        /* Password Toggle */
         .toggle-password {
             position: absolute;
             right: 15px;
@@ -149,7 +140,6 @@
             z-index: 10;
         }
 
-        /* Utilities */
         .flex-between {
             display: flex;
             justify-content: space-between;
@@ -175,7 +165,6 @@
             text-decoration: underline;
         }
 
-        /* Login Button */
         .btn-login {
             width: 100%;
             padding: 14px;
@@ -199,7 +188,6 @@
             box-shadow: 0 5px 15px rgba(30, 58, 138, 0.3);
         }
 
-        /* Alert Boxes */
         .alert {
             padding: 12px 15px;
             border-radius: 8px;
@@ -222,7 +210,6 @@
             border: 1px solid #BBF7D0;
         }
 
-        /* Footer Links */
         .register-link {
             text-align: center;
             margin-top: 25px;
@@ -247,7 +234,6 @@
             color: var(--text-muted);
         }
 
-        /* Mobile */
         @media (max-width: 480px) {
             .login-card {
                 padding: 30px 20px;
@@ -258,7 +244,6 @@
 <body>
 
     <div class="login-container">
-        <!-- 1. Header / Logo -->
         <header class="brand-header">
             <a href="/" class="brand-logo">
                 <i class="fas fa-shield-halved"></i> Nivada
@@ -266,13 +251,10 @@
             <p class="tagline">Smart Complaint Resolution System</p>
         </header>
 
-        <!-- 2. Login Card -->
         <main class="login-card">
             <h2>Welcome Back</h2>
             <p>Please enter your credentials to access your portal.</p>
 
-            <!-- 4. Error / Alert Section -->
-            <!-- Flask Flash Messaging logic -->
             {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}
                     {% for category, message in messages %}
@@ -285,7 +267,6 @@
             {% endwith %}
 
             <form method="POST" action="/login">
-                <!-- Email Field -->
                 <div class="form-group">
                     <label for="email">Email Address</label>
                     <div class="input-wrapper">
@@ -294,7 +275,6 @@
                     </div>
                 </div>
 
-                <!-- Password Field -->
                 <div class="form-group">
                     <label for="password">Password</label>
                     <div class="input-wrapper">
@@ -306,7 +286,6 @@
                     </div>
                 </div>
 
-                <!-- 3. Extra Options -->
                 <div class="flex-between">
                     <label class="checkbox-group">
                         <input type="checkbox" name="remember"> Remember Me
@@ -314,7 +293,6 @@
                     <a href="/forgot-password" class="forgot-link">Forgot Password?</a>
                 </div>
 
-                <!-- Login Button -->
                 <button type="submit" class="btn-login">
                     <span>Secure Login</span>
                     <i class="fas fa-arrow-right"></i>
@@ -331,7 +309,6 @@
             </a>
         </div>
 
-        <!-- 5. Minimal Footer -->
         <footer class="login-footer">
             <p>&copy; 2026 Nivada. All rights reserved.</p>
             <p>
@@ -341,26 +318,20 @@
         </footer>
     </div>
 
-    <!-- External Script Link -->
     <script src="{{ url_for('static', filename='script.js') }}"></script>
     
-    <!-- UX Enhancements Script -->
     <script>
-        // Password Visibility Toggle
         const togglePassword = document.querySelector('#togglePassword');
         const password = document.querySelector('#password');
         const eyeIcon = document.querySelector('#eyeIcon');
 
         togglePassword.addEventListener('click', function (e) {
-            // toggle the type attribute
             const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
             password.setAttribute('type', type);
-            // toggle the eye slash icon
             eyeIcon.classList.toggle('fa-eye');
             eyeIcon.classList.toggle('fa-eye-slash');
         });
 
-        // Form submission loading state
         const loginForm = document.querySelector('form');
         const loginBtn = document.querySelector('.btn-login');
 

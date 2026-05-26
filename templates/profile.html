@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Profile | Nivada Smart Complaint System</title>
-    <!-- Google Fonts: Poppins -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -37,7 +35,6 @@
             flex-direction: column;
         }
 
-        /* Navbar Header */
         header {
             background: var(--white);
             padding: 1rem 5%;
@@ -75,7 +72,6 @@
             color: var(--primary-blue);
         }
 
-        /* Main Content Container */
         .container {
             flex: 1;
             display: flex;
@@ -84,7 +80,6 @@
             padding: 40px 20px;
         }
 
-        /* Profile Card */
         .profile-card {
             background: var(--white);
             width: 100%;
@@ -101,7 +96,6 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Left Section: Avatar */
         .profile-sidebar {
             background: linear-gradient(135deg, var(--primary-blue) 0%, #1e40af 100%);
             width: 35%;
@@ -193,7 +187,6 @@
             opacity: 0.8;
         }
 
-        /* Right Section: Details */
         .profile-details {
             flex: 1;
             padding: 50px;
@@ -239,7 +232,6 @@
             min-height: 24px;
         }
 
-        /* Input styling for Edit Mode */
         .edit-input {
             width: 100%;
             padding: 8px 12px;
@@ -248,7 +240,7 @@
             font-size: 0.95rem;
             outline: none;
             transition: var(--transition);
-            display: none; /* Hidden by default */
+            display: none;
         }
 
         .edit-input:focus {
@@ -256,7 +248,6 @@
             box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
         }
 
-        /* Action Buttons */
         .action-area {
             display: flex;
             gap: 15px;
@@ -298,14 +289,12 @@
         }
         .btn-danger:hover { background-color: var(--danger-red); color: var(--white); transform: translateY(-2px); }
 
-        /* Animation for editing state */
         .is-editing .view-mode { display: none; }
         .is-editing .edit-mode { display: block; }
         .is-editing .edit-input { display: block; }
         .is-editing .btn-edit { display: none; }
         .is-editing .btn-success { display: inline-flex; }
 
-        /* Responsive Design */
         @media (max-width: 768px) {
             .profile-card { flex-direction: column; }
             .profile-sidebar { width: 100%; padding: 40px 20px; }
@@ -329,7 +318,6 @@
 
     <div class="container">
         <form id="profileForm" action="/update_profile" method="POST" class="profile-card">
-            <!-- Sidebar / Avatar Section -->
             <div class="profile-sidebar">
                 <label for="imageInput" class="avatar-wrapper" title="Click to change photo">
                     <div class="avatar-container" id="userAvatar">
@@ -350,7 +338,6 @@
                 </div>
             </div>
 
-            <!-- Main Details Section -->
             <div class="profile-details">
                 <div class="section-header">
                     <h3 class="section-title">
@@ -388,17 +375,14 @@
                 </h3>
                 
                 <div class="action-area">
-                    <!-- Save Button (Visible in Edit Mode) -->
                     <button type="submit" class="btn btn-success" id="saveBtn">
                         <i class="fas fa-save"></i> Save Changes
                     </button>
                     
-                    <!-- Cancel Button (Visible in Edit Mode) -->
                     <button type="button" class="btn btn-outline edit-mode" id="cancelBtn" style="display:none;">
                         Cancel
                     </button>
 
-                    <!-- Default View Buttons -->
                     <button type="button" class="btn btn-outline view-mode">
                         <i class="fas fa-key"></i> Change Password
                     </button>
@@ -420,7 +404,6 @@
             const imageInput = document.getElementById('imageInput');
             const sidebarName = document.getElementById('sidebarName');
 
-            // --- 1. INITIALS LOGIC ---
             const generateInitials = (name) => {
                 if (!name || name.startsWith('{')) return "JD";
                 const parts = name.split(/[._\s]/);
@@ -429,7 +412,6 @@
             };
             initialsSpan.textContent = generateInitials("{{ user.username }}");
 
-            // --- 2. EDIT MODE TOGGLE ---
             editToggle.addEventListener('click', () => {
                 form.classList.add('is-editing');
                 cancelBtn.style.display = 'inline-flex';
@@ -438,19 +420,15 @@
             cancelBtn.addEventListener('click', () => {
                 form.classList.remove('is-editing');
                 cancelBtn.style.display = 'none';
-                // Reset inputs to original view values if needed
             });
 
-            // --- 3. SAVE / SUBMIT LOGIC ---
             form.addEventListener('submit', (e) => {
-                
+                e.preventDefault();
                 const saveBtn = document.getElementById('saveBtn');
                 saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
                 saveBtn.disabled = true;
 
-                // Simulate Backend Save
                 setTimeout(() => {
-                    // Update View Mode text with new Input values
                     const newUsername = document.getElementById('input-username').value;
                     const newEmail = document.getElementById('input-email').value;
                     const newPhone = document.getElementById('input-phone').value;
@@ -461,18 +439,15 @@
                     sidebarName.textContent = newUsername;
                     initialsSpan.textContent = generateInitials(newUsername);
 
-                    // Revert UI
                     form.classList.remove('is-editing');
                     cancelBtn.style.display = 'none';
                     saveBtn.innerHTML = '<i class="fas fa-save"></i> Save Changes';
                     saveBtn.disabled = false;
 
-                    // Optional: Show Success Notification
                     console.log("Profile Updated Successfully");
                 }, 1000);
             });
 
-            // --- 4. IMAGE UPLOAD PREVIEW ---
             imageInput.addEventListener('change', function() {
                 const file = this.files[0];
                 if (file) {

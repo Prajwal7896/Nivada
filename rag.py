@@ -7,9 +7,6 @@ from sentence_transformers import SentenceTransformer, util, CrossEncoder
 from rank_bm25 import BM25Okapi
 
 
-# =========================
-# LOAD DATA
-# =========================
 with open("complaints_store.pkl", "rb") as f:
     data = pickle.load(f)
 
@@ -18,22 +15,13 @@ solutions = data["solutions"]
 categories = data["categories"]
 
 
-# =========================
-# MODELS
-# =========================
 embedder = SentenceTransformer("all-MiniLM-L6-v2")
 reranker = CrossEncoder("cross-encoder/ms-marco-MiniLM-L-6-v2")
 
 
-# =========================
-# MEMORY SYSTEM
-# =========================
 memory = defaultdict(lambda: {"good": 0, "bad": 0})
 
 
-# =========================
-# INDEXES
-# =========================
 text_embeddings = embedder.encode(
     texts,
     convert_to_tensor=True,
@@ -43,9 +31,6 @@ text_embeddings = embedder.encode(
 bm25 = BM25Okapi([t.lower().split() for t in texts])
 
 
-# =========================
-# 🧠 PLANNER AGENT
-# =========================
 def planner(query):
     q = query.lower()
 
@@ -68,9 +53,6 @@ def planner(query):
     return plan
 
 
-# =========================
-# 🚦 ROUTER AGENT
-# =========================
 def router(plan):
     if plan["depth"] == "critical":
         return 30
@@ -79,9 +61,6 @@ def router(plan):
     return 10
 
 
-# =========================
-# 🔍 RETRIEVER AGENT
-# =========================
 def retrieve(query, top_k=10, use_bm25=True):
 
     candidates = set()
@@ -101,9 +80,6 @@ def retrieve(query, top_k=10, use_bm25=True):
     return list(candidates)
 
 
-# =========================
-# 🎯 RERANKER AGENT
-# =========================
 def rerank(query, candidates):
     pairs = [(query, texts[i]) for i in candidates]
     scores = reranker.predict(pairs)
@@ -117,9 +93,6 @@ def rerank(query, candidates):
     return ranked
 
 
-# =========================
-# 🧪 EVIDENCE VALIDATOR
-# =========================
 def validate(score):
     if score > 0.75:
         return "strong"
@@ -128,20 +101,15 @@ def validate(score):
     return "weak"
 
 
-# =========================
-# 🪞 REFLECTION AGENT
-# =========================
 def reflect(results):
     if not results:
         return False
 
     best_score = results[0]["score"]
 
-    # self-check logic
     if best_score < 0.55:
         return False
 
-    # diversity check
     categories = set(r["category"] for r in results)
     if len(categories) == 1 and best_score < 0.7:
         return False
@@ -149,9 +117,6 @@ def reflect(results):
     return True
 
 
-# =========================
-# 💾 MEMORY UPDATER
-# =========================
 def update_memory(query, idx, good=True):
     if good:
         memory[idx]["good"] += 1
@@ -159,9 +124,6 @@ def update_memory(query, idx, good=True):
         memory[idx]["bad"] += 1
 
 
-# =========================
-# 🧠 MAIN AUTONOMOUS AGENT PIPELINE
-# =========================
 def generate_rag_response(query):
 
     plan = planner(query)
@@ -192,7 +154,6 @@ def generate_rag_response(query):
             "confidence": validate(final_score)
         })
 
-    # 🪞 reflection step
     if not reflect(results):
         return {
             "final_solution": "I need more information to provide a reliable resolution.",
@@ -210,8 +171,5 @@ def generate_rag_response(query):
     }
 
 
-# =========================
-# OPTIONAL FEEDBACK API
-# =========================
 def feedback(idx, is_helpful: bool):
     update_memory(None, idx, is_helpful)

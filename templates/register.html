@@ -4,15 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register | Nivada Smart Complaint System</title>
-    <!-- Google Fonts: Poppins -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- External CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     
     <style>
-        /* Shared design tokens with login.html */
         :root {
             --primary-blue: #1E3A8A;
             --secondary-green: #10B981;
@@ -48,7 +44,6 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Brand Header */
         .brand-header {
             text-align: center;
             margin-bottom: 2rem;
@@ -70,7 +65,6 @@
             margin-top: 5px;
         }
 
-        /* Register Card */
         .register-card {
             background: var(--white);
             padding: 40px;
@@ -91,7 +85,6 @@
             font-size: 0.95rem;
         }
 
-        /* Form Styling */
         .form-group {
             margin-bottom: 18px;
             position: relative;
@@ -143,7 +136,6 @@
             z-index: 10;
         }
 
-        /* Password Strength Meter */
         .strength-meter {
             height: 4px;
             width: 100%;
@@ -167,7 +159,6 @@
             color: var(--text-muted);
         }
 
-        /* Registration Button */
         .btn-register {
             width: 100%;
             padding: 14px;
@@ -192,7 +183,6 @@
             box-shadow: 0 5px 15px rgba(30, 58, 138, 0.3);
         }
 
-        /* Checkbox Styling */
         .terms-group {
             display: flex;
             align-items: flex-start;
@@ -213,7 +203,6 @@
             font-weight: 500;
         }
 
-        /* Alert Boxes */
         .alert {
             padding: 12px 15px;
             border-radius: 8px;
@@ -227,7 +216,6 @@
         .alert-danger { background: #FEE2E2; color: #991B1B; border: 1px solid #FECACA; }
         .alert-success { background: #DCFCE7; color: #166534; border: 1px solid #BBF7D0; }
 
-        /* Login Link */
         .login-link {
             text-align: center;
             margin-top: 25px;
@@ -250,7 +238,6 @@
             color: var(--text-muted);
         }
 
-        /* Mobile */
         @media (max-width: 480px) {
             .register-card { padding: 30px 20px; }
         }
@@ -259,7 +246,6 @@
 <body>
 
     <div class="register-container">
-        <!-- 1. Header / Logo -->
         <header class="brand-header">
             <a href="/" class="brand-logo">
                 <i class="fas fa-shield-halved"></i> Nivada
@@ -267,13 +253,10 @@
             <p class="tagline">Create your secure citizen account</p>
         </header>
 
-        <!-- 2. Register Card -->
         <main class="register-card">
             <h2>Get Started</h2>
             <p>Join the smart governance platform today.</p>
 
-            <!-- 5. Validation / Alerts -->
-            <!-- Flask Flash Messaging -->
             {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}
                     {% for category, message in messages %}
@@ -285,9 +268,7 @@
                 {% endif %}
             {% endwith %}
 
-            <!-- Form -->
             <form method="POST" action="/register" id="registrationForm">
-                <!-- 👤 Username -->
                 <div class="form-group">
                     <label for="username">Username</label>
                     <div class="input-wrapper">
@@ -296,7 +277,6 @@
                     </div>
                 </div>
 
-                <!-- 📧 Email -->
                 <div class="form-group">
                     <label for="email">Email Address</label>
                     <div class="input-wrapper">
@@ -305,7 +285,6 @@
                     </div>
                 </div>
 
-                <!-- 🔒 Password -->
                 <div class="form-group">
                     <label for="password">Password</label>
                     <div class="input-wrapper">
@@ -315,14 +294,12 @@
                             <i class="fas fa-eye" id="eye1"></i>
                         </span>
                     </div>
-                    <!-- Password strength indicator -->
                     <div class="strength-meter">
                         <div class="strength-bar" id="strengthBar"></div>
                     </div>
                     <span class="strength-text" id="strengthText">Strength: Weak</span>
                 </div>
 
-                <!-- 🔒 Confirm Password -->
                 <div class="form-group">
                     <label for="confirm_password">Confirm Password</label>
                     <div class="input-wrapper">
@@ -335,13 +312,11 @@
                     <span id="match-msg" style="font-size: 0.75rem; display: none; margin-top: 5px;"></span>
                 </div>
 
-                <!-- 4. Extra Options: Terms -->
                 <label class="terms-group">
                     <input type="checkbox" required>
                     <span>I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.</span>
                 </label>
 
-                <!-- 3. Register Button -->
                 <button type="submit" class="btn-register" id="regBtn">
                     <span>Create Account</span>
                     <i class="fas fa-user-plus"></i>
@@ -353,7 +328,6 @@
             </div>
         </main>
 
-        <!-- Footer -->
         <footer class="register-footer">
             <p>&copy; 2026 Nivada. All rights reserved.</p>
         </footer>
@@ -361,9 +335,7 @@
 
     <script src="{{ url_for('static', filename='script.js') }}"></script>
     
-    <!-- 🔐 UX FEATURES SCRIPT -->
     <script>
-        // Toggle Password Visibility
         function togglePass(id, eyeId) {
             const input = document.getElementById(id);
             const icon = document.getElementById(eyeId);
@@ -376,7 +348,6 @@
             }
         }
 
-        // Password Strength Indicator
         const password = document.getElementById('password');
         const strengthBar = document.getElementById('strengthBar');
         const strengthText = document.getElementById('strengthText');
@@ -398,7 +369,6 @@
             strengthText.style.color = colors[strength-1] || '#64748B';
         });
 
-        // Real-time Confirm Password Validation
         const confirm = document.getElementById('confirm_password');
         const matchMsg = document.getElementById('match-msg');
 
@@ -416,7 +386,6 @@
             }
         });
 
-        // Form Submission Loading State
         document.getElementById('registrationForm').addEventListener('submit', function(e) {
             if (password.value !== confirm.value) {
                 e.preventDefault();

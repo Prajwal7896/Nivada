@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nivada - AI Complaint System</title>
-    <!-- Google Fonts: Inter -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Font Awesome for subtle icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -417,12 +415,9 @@
             <a href="/dashboard" class="nav-btn" title="Dashboard">
                 <i class="fas fa-chart-line"></i> <span>Dashboard</span>
             </a>
-            <a href="/settings" class="nav-btn" title="Settings">
-                <i class="fas fa-sliders"></i> <span>Settings</span>
-            </a>
             <button onclick="handleLogout()" class="nav-btn logout-btn" title="Logout">
                 <i class="fas fa-arrow-right-from-bracket"></i> <span>Logout</span>
-            </a>
+            </button>
         </div>
     </header>
 
@@ -434,7 +429,6 @@
         
         <div class="form-card">
             <form action="/submit" method="POST" enctype="multipart/form-data" id="complaintForm">
-                <!-- Mandatory Address & Satellite Pin -->
                 <div class="form-group">
                     <label for="address"><i class="fas fa-location-dot"></i> Complaint Address</label>
                     <div class="input-wrapper">
@@ -450,7 +444,6 @@
                             <i class="fas fa-satellite"></i> <span>Pin on Map</span>
                         </button>
                     </div>
-                    <!-- Satellite View Container -->
                     <div class="map-preview" id="mapContainer">
                         <div class="map-overlay">Satellite View</div>
                     </div>
@@ -458,7 +451,6 @@
                     <input type="hidden" name="longitude" id="lng">
                 </div>
 
-                <!-- Complaint Content: Text -->
                 <div class="form-group">
                     <label for="complaint_text"><i class="fas fa-pen-nib"></i> Complaint Details</label>
                     <textarea 
@@ -471,7 +463,6 @@
 
                 <div class="divider">OR UPLOAD PROOF</div>
 
-                <!-- Complaint Content: Image -->
                 <div class="form-group">
                     <div class="file-upload-wrapper">
                         <i class="fas fa-image"></i>

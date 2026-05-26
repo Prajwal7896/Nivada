@@ -4,11 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard | Nivada Smart Complaint System</title>
-    <!-- Google Fonts: Poppins -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- External CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     
     <style>
@@ -35,7 +32,6 @@
             line-height: 1.6;
         }
 
-        /* 1. Top Navbar */
         .navbar {
             background: var(--white);
             height: 70px;
@@ -102,14 +98,12 @@
             font-size: 0.8rem;
         }
 
-        /* Main Content Wrapper */
         .dashboard-main {
             max-width: 1200px;
             margin: 40px auto;
             padding: 0 20px;
         }
 
-        /* 2. Welcome Section */
         .welcome-section {
             margin-bottom: 30px;
             display: flex;
@@ -126,7 +120,6 @@
             color: var(--text-muted);
         }
 
-        /* 3. Quick Action Button */
         .btn-primary {
             background: var(--primary-blue);
             color: white;
@@ -148,7 +141,6 @@
             box-shadow: 0 4px 12px rgba(30, 58, 138, 0.2);
         }
 
-        /* 4. Summary Cards */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -194,7 +186,6 @@
         .icon-progress { background: #DBEAFE; color: #3B82F6; }
         .icon-resolved { background: #DCFCE7; color: var(--secondary-green); }
 
-        /* 5. Complaint List Section */
         .content-card {
             background: var(--white);
             border-radius: 15px;
@@ -216,7 +207,6 @@
             font-weight: 600;
         }
 
-        /* Table Styling */
         .table-responsive {
             overflow-x: auto;
         }
@@ -245,7 +235,6 @@
 
         tr:last-child td { border-bottom: none; }
 
-        /* 6. Status Badges */
         .badge {
             padding: 4px 12px;
             border-radius: 20px;
@@ -258,7 +247,6 @@
         .status-progress { background: #DBEAFE; color: #1E40AF; }
         .status-resolved { background: #DCFCE7; color: #166534; }
 
-        /* 7. Actions */
         .btn-icon {
             color: var(--text-muted);
             transition: 0.3s;
@@ -268,7 +256,6 @@
 
         .btn-icon:hover { color: var(--primary-blue); }
 
-        /* 8. Empty State */
         .empty-state {
             padding: 60px 20px;
             text-align: center;
@@ -280,7 +267,6 @@
             margin-bottom: 20px;
         }
 
-        /* 9. Footer */
         .dashboard-footer {
             text-align: center;
             padding: 40px 20px;
@@ -288,10 +274,9 @@
             font-size: 0.9rem;
         }
 
-        /* Mobile Adjustments */
         @media (max-width: 768px) {
             .navbar { padding: 0 20px; }
-            .nav-links { display: none; } /* Simplified for demo - usually a hamburger menu */
+            .nav-links { display: none; }
             .welcome-section { flex-direction: column; align-items: flex-start; gap: 20px; }
             .btn-primary { width: 100%; justify-content: center; }
         }
@@ -307,7 +292,6 @@
 </head>
 <body>
 
-    <!-- 1. Top Navbar -->
     <nav class="navbar">
         <a href="/" class="nav-brand">
             <i class="fas fa-shield-halved"></i> Nivada
@@ -315,7 +299,6 @@
         <div class="nav-links">
             <a href="/dashboard" class="active">Dashboard</a>
             <a href="/submit">Submit Complaint</a>
-            <a href="/status">Track Status</a>
             <a href="/logout" class="btn-logout">Logout</a>
             <div class="user-profile">
                 <div class="avatar">
@@ -330,51 +313,53 @@
 
     <main class="dashboard-main">
         
-        <!-- 2. Welcome Section -->
         <section class="welcome-section">
             <div class="welcome-text">
                 <h1>Welcome, {{ session.username }}</h1>
                 <p>Track and manage your complaints efficiently.</p>
             </div>
-            <!-- 3. Quick Action Button -->
             <a href="/submit" class="btn-primary">
                 <i class="fas fa-plus"></i>
                 Submit New Complaint
             </a>
         </section>
 
-        <!-- 4. Summary Cards -->
         <section class="stats-grid">
+
             <div class="stat-card">
                 <div class="stat-icon icon-total"><i class="fas fa-folder-open"></i></div>
                 <div class="stat-info">
                     <h3>Total Complaints</h3>
-                    <p>12</p>
+                    <p>{{ total }}</p>
                 </div>
             </div>
+
             <div class="stat-card">
                 <div class="stat-icon icon-pending"><i class="fas fa-clock"></i></div>
                 <div class="stat-info">
                     <h3>Pending</h3>
-                    <p>3</p>
+                    <p>{{ pending }}</p>
                 </div>
             </div>
+
             <div class="stat-card">
                 <div class="stat-icon icon-progress"><i class="fas fa-spinner"></i></div>
                 <div class="stat-info">
                     <h3>In Progress</h3>
-                    <p>4</p>
+                    <p>{{ progress }}</p>
                 </div>
             </div>
+
             <div class="stat-card">
                 <div class="stat-icon icon-resolved"><i class="fas fa-check-circle"></i></div>
                 <div class="stat-info">
                     <h3>Resolved</h3>
-                    <p>5</p>
+                    <p>{{ resolved }}</p>
                 </div>
             </div>
+
         </section>
-        <!-- 🔥 AI Suggested Solution (RAG) -->
+        
         {% if rag_solution %}
         <section class="content-card" style="margin-top: 30px;">
             <div class="card-header">
@@ -382,9 +367,23 @@
             </div>
 
             <div style="padding: 20px;">
-                <p style="font-weight: 500; color: var(--primary-blue);">
-                    {{ rag_solution }}
-                </p>
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <p style="font-weight:600; color:var(--primary-blue); font-size:1.1rem;">
+                        {{ rag_solution }}
+                    </p>
+
+                    {% if rag_cases and rag_cases[0].score %}
+                    <span style="
+                        background:#e0f2fe;
+                        color:#0369a1;
+                        padding:6px 12px;
+                        border-radius:20px;
+                        font-size:0.8rem;
+                        font-weight:600;">
+                        Confidence: {{ (rag_cases[0].score * 100) | round(1) }}%
+                    </span>
+                    {% endif %}
+                </div>
             </div>
         </section>
         {% endif %}
@@ -396,22 +395,29 @@
 
             <div style="padding: 20px;">
                 {% for case in rag_cases %}
-                <div class="similar-case" style="margin-bottom: 15px; padding: 10px; border-bottom: 1px solid #eee;">
-                    <p><strong>Complaint:</strong> {{ case.complaint }}</p>
-                    <p style="color: var(--secondary-green);">
-                        <strong>Solution:</strong> {{ case.solution }}
+                <div class="similar-case"
+                    style="padding:12px; margin-bottom:12px; border-left:4px solid #1E3A8A; background:#f8fafc; border-radius:8px;">
+
+                    <p style="font-weight:600;">🧾 {{ case.complaint }}</p>
+
+                    <p style="color:#10B981; margin-top:5px;">
+                        💡 {{ case.solution }}
                     </p>
+
+                    {% if case.score %}
+                    <span style="font-size:0.75rem; color:#64748b;">
+                        relevance: {{ (case.score * 100)|round(1) }}%
+                    </span>
+                    {% endif %}
                 </div>
                 {% endfor %}
             </div>
         </section>
         {% endif %}
-        <!-- 5. Complaint List Section -->
         <section class="content-card">
             <div class="card-header">
                 <h2>Recent Complaints</h2>
                 <div class="filters">
-                    <!-- Filter logic can be added here -->
                 </div>
             </div>
             
@@ -456,7 +462,6 @@
                     </tbody>
                 </table>
                 {% else %}
-                <!-- 8. Empty State -->
                 <div class="empty-state">
                     <i class="fas fa-clipboard-list"></i>
                     <h3>No complaints yet</h3>
@@ -470,7 +475,6 @@
 
     </main>
 
-    <!-- 9. Footer -->
     <footer class="dashboard-footer">
         <p>&copy; 2026 Nivada Smart Complaint Resolution System. All rights reserved.</p>
     </footer>

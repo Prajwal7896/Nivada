@@ -16,7 +16,6 @@
 <body class="bg-slate-50 min-h-screen flex items-center justify-center p-4">
 
     <div class="max-w-md w-full glass-effect p-8 rounded-2xl shadow-xl border border-slate-200">
-        <!-- Header -->
         <div class="text-center mb-8">
             <div class="inline-flex items-center justify-center w-16 h-16 bg-indigo-600 rounded-full mb-4 shadow-lg shadow-indigo-200">
                 <i class="fas fa-lock text-white text-2xl"></i>
@@ -25,7 +24,6 @@
             <p class="text-slate-500 text-sm mt-2">Sign in to manage departmental complaints</p>
         </div>
 
-        <!-- Flask Flash Messages -->
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
@@ -39,7 +37,6 @@
 
         <form action="{{ url_for('admin_login') }}" method="POST" class="space-y-5">
             
-            <!-- Department Selection (Crucial for routing) -->
             <div>
                 <label class="block text-sm font-semibold text-slate-700 mb-1">Your Department</label>
                 <div class="relative">
@@ -66,7 +63,6 @@
                 </div>
             </div>
 
-            <!-- Email / Username -->
             <div>
                 <label class="block text-sm font-semibold text-slate-700 mb-1">Email Address</label>
                 <div class="relative">
@@ -79,7 +75,6 @@
                 </div>
             </div>
 
-            <!-- Password -->
             <div>
                 <div class="flex justify-between mb-1">
                     <label class="text-sm font-semibold text-slate-700">Password</label>
@@ -95,13 +90,11 @@
                 </div>
             </div>
 
-            <!-- Remember Me -->
             <div class="flex items-center">
                 <input type="checkbox" id="remember" class="w-4 h-4 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500">
                 <label for="remember" class="ml-2 text-sm text-slate-600">Remember this device</label>
             </div>
 
-            <!-- Submit Button -->
             <button type="submit"
                 class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-lg shadow-lg shadow-indigo-100 transition-all transform hover:-translate-y-0.5 active:scale-95 flex items-center justify-center gap-2">
                 <i class="fas fa-sign-in-alt"></i>
@@ -109,7 +102,6 @@
             </button>
         </form>
 
-        <!-- Navigation Links -->
         <div class="mt-8 pt-6 border-t border-slate-100 text-center">
             <p class="text-sm text-slate-600">
                 New department head? 
