@@ -1,59 +1,159 @@
 import os
-import sqlite3
 import uuid
 import pickle
 import torch
 
-from functools import wraps
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+from fastapi import FastAPI, Request, Form, UploadFile, File, Depends
+from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+from monitoring_service import track_prediction
+from starlette.middleware.sessions import SessionMiddleware
+
+from sqlalchemy import create_engine, Column, Integer, String, Text, TIMESTAMP
+from sqlalchemy.orm import sessionmaker, declarative_base, Session
+from sqlalchemy.sql import func
+
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_session import Session
-from werkzeug.utils import secure_filename
 
 from transformers import DistilBertTokenizer, DistilBertForSequenceClassification
+
 from rag import generate_rag_response
 
 
-app = Flask(__name__)
-app.secret_key = os.getenv("SECRET_KEY", "dev_key")
+# =========================
+# APP SETUP
+# =========================
+app = FastAPI()
 
-DB_PATH = "nivada.db"
+app.add_middleware(
+    SessionMiddleware,
+    secret_key=os.getenv("SECRET_KEY", "dev_key")
+)
 
-app.config["SESSION_TYPE"] = "filesystem"
-app.config["SESSION_PERMANENT"] = False
-Session(app)
+templates = Jinja2Templates(directory="templates")
 
-ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg"}
 
-CATEGORY_TO_DEPT = {
-    "Road": "municipal",
-    "Pothole": "municipal",
-    "Street Light": "electricity",
-    "Power Outage": "electricity",
+# =========================
+# DATABASE
+# =========================
+DATABASE_URL = os.getenv(
+    "DATABASE_URL",
+    "postgresql+psycopg2://postgres:sage7896@127.0.0.1:5432/nivada"
+)
+
+engine = create_engine(
+    DATABASE_URL,
+    echo=True,
+    pool_pre_ping=True
+)
+SessionLocal = sessionmaker(bind=engine, autoflush=False)
+Base = declarative_base()
+
+
+class User(Base):
+    __tablename__ = "users"
+    id = Column(Integer, primary_key=True)
+    username = Column(String)
+    email = Column(String, unique=True)
+    password = Column(String)
+    phone = Column(String)
+
+
+class Admin(Base):
+    __tablename__ = "admins"
+    id = Column(Integer, primary_key=True)
+    username = Column(String)
+    email = Column(String, unique=True)
+    password = Column(String)
+    department = Column(String)
+
+
+class Complaint(Base):
+    __tablename__ = "complaints"
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer)
+
+    complaint_text = Column(Text)
+    category = Column(String)
+    department = Column(String)
+
+    assigned_admin_id = Column(Integer)
+
+    address = Column(Text)
+    latitude = Column(String)
+    longitude = Column(String)
+
+    image_path = Column(Text)
+
+    rag_solution = Column(Text)
+    rag_cases = Column(Text)
+
+    status = Column(String, default="pending")
+    timestamp = Column(TIMESTAMP, server_default=func.now())
+
+
+Base.metadata.create_all(bind=engine)
+
+
+# =========================
+# DB SESSION
+# =========================
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+
+# =========================
+# CATEGORY MAP
+# =========================
+DEPT_MAPPING = {
+    # Electricity group
     "Electricity": "electricity",
-    "Water Leakage": "water",
+    "Power Outage": "electricity",
+    "Network": "electricity",
+
+    # Water group
+    "Water": "water",
     "Water Supply": "water",
-    "Drainage": "sanitation",
-    "Garbage": "sanitation",
-    "Sanitation": "sanitation",
-    "Traffic": "transport",
-    "Accident": "police",
+    "Water Leakage": "water",
+
+    # Municipal / Infrastructure
+    "Road": "municipal",
+    "Infrastructure": "municipal",
+    "Sanitation": "municipal",
+
+    # Transport
+    "Transport": "transport",
+
+    # Police
+    "Crime": "police",
     "Theft": "police",
-    "Noise": "municipal",
-    "Other": "municipal"
+
+    # Health
+    "Health": "health",
+
+    # Environment
+    "Environment": "environment",
 }
 
+ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg"}
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
+# =========================
+# ML MODEL
+# =========================
 MODEL_PATH = "fast_model/"
 ENCODER_PATH = "label_encoder.pkl"
 
 try:
     tokenizer = DistilBertTokenizer.from_pretrained(MODEL_PATH)
     model = DistilBertForSequenceClassification.from_pretrained(MODEL_PATH)
-
     model.to(device)
     model.eval()
 
@@ -67,87 +167,15 @@ except Exception as e:
     label_encoder = None
 
 
-def get_db():
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    return conn
-
-
-def init_db():
-    conn = get_db()
-    cur = conn.cursor()
-
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT,
-            email TEXT UNIQUE,
-            password TEXT,
-            phone TEXT
-        )
-    """)
-
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS admins (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT,
-            email TEXT UNIQUE,
-            password TEXT,
-            department TEXT
-        )
-    """)
-
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS complaints (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER,
-            complaint_text TEXT,
-            category TEXT,
-            department TEXT,
-            assigned_admin_id INTEGER,
-            address TEXT,
-            latitude TEXT,
-            longitude TEXT,
-            image_path TEXT,
-            rag_solution TEXT,
-            rag_cases TEXT,
-            status TEXT DEFAULT 'pending',
-            timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    """)
-
-    conn.commit()
-    cur.execute("PRAGMA table_info(complaints)")
-    columns = [c[1] for c in cur.fetchall()]
-
-    if "submitted_complaints" not in columns:
-        cur.execute("ALTER TABLE complaints ADD COLUMN submitted_complaints TEXT")
-
-    if "submitted_complaint_types" not in columns:
-        cur.execute("ALTER TABLE complaints ADD COLUMN submitted_complaint_types TEXT")
-
-    if "rag_solution" not in columns:
-        cur.execute("ALTER TABLE complaints ADD COLUMN rag_solution TEXT")
-
-    conn.commit()
-    conn.close()
-
-def normalize_category(cat: str):
-    if not cat:
-        return "Other"
-def safe_category(category: str):
-    if not category:
-        return "Other"
-
-    category = category.strip()
-
-    return category if category in CATEGORY_TO_DEPT else "Other"
+# =========================
+# HELPERS
+# =========================
 def allowed_file(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
 def save_image(image):
-    if not image or image.filename == "":
+    if not image or not image.filename:
         return None
 
     if not allowed_file(image.filename):
@@ -157,43 +185,12 @@ def save_image(image):
 
     ext = image.filename.rsplit(".", 1)[1].lower()
     filename = f"{uuid.uuid4().hex}.{ext}"
+    path = os.path.join("static/uploads", filename)
 
-    path = os.path.join("static", "uploads", filename)
-    image.save(path)
+    with open(path, "wb") as f:
+        f.write(image.file.read())
 
     return path
-
-def get_assigned_admin(department):
-    conn = get_db()
-    cur = conn.cursor()
-
-    cur.execute("""
-        SELECT id FROM admins
-        WHERE LOWER(department)=LOWER(?)
-        LIMIT 1
-    """, (department,))
-
-    admin = cur.fetchone()
-    conn.close()
-
-    return admin["id"] if admin else None
-
-def login_required(f):
-    @wraps(f)
-    def wrapper(*args, **kwargs):
-        if "user_id" not in session:
-            return redirect(url_for("login"))
-        return f(*args, **kwargs)
-    return wrapper
-
-
-def admin_required(f):
-    @wraps(f)
-    def wrapper(*args, **kwargs):
-        if "admin_id" not in session:
-            return redirect(url_for("admin_login"))
-        return f(*args, **kwargs)
-    return wrapper
 
 
 def predict_complaint(text):
@@ -206,293 +203,377 @@ def predict_complaint(text):
         truncation=True,
         padding=True,
         max_length=64
-    )
-
-    inputs = {k: v.to(device) for k, v in inputs.items()}
+    ).to(device)
 
     with torch.no_grad():
         outputs = model(**inputs)
         probs = torch.softmax(outputs.logits, dim=1)
-
         confidence, pred = torch.max(probs, dim=1)
 
-    confidence = confidence.item()
-    pred = pred.item()
-
-    if confidence < 0.60:
+    if confidence.item() < 0.60:
         return "Other"
 
-    return label_encoder.inverse_transform([pred])[0]
+    return label_encoder.inverse_transform([pred.item()])[0]
 
 
-@app.route("/")
+def get_assigned_admin(department, db):
+    admin = db.query(Admin).filter(Admin.department.ilike(department)).first()
+    return admin.id if admin else None
+
+
+# =========================
+# ROUTES
+# =========================
+
+@app.get("/")
 def home():
-    return redirect(url_for("login"))
+    return RedirectResponse("/login")
 
 
-@app.route("/register", methods=["GET", "POST"])
-def register():
-    if request.method == "POST":
-        username = request.form.get("username")
-        email = request.form.get("email").lower().strip()
-        password = generate_password_hash(request.form.get("password"))
-        phone = request.form.get("phone")
-
-        conn = get_db()
-        cur = conn.cursor()
-
-        cur.execute("SELECT id FROM users WHERE email=?", (email,))
-        if cur.fetchone():
-            flash("Email already exists", "error")
-            return redirect(url_for("register"))
-
-        cur.execute("""
-            INSERT INTO users (username, email, password, phone)
-            VALUES (?, ?, ?, ?)
-        """, (username, email, password, phone))
-
-        conn.commit()
-        conn.close()
-
-        flash("Registered successfully", "success")
-        return redirect(url_for("login"))
-
-    return render_template("register.html")
+# -------------------------
+# REGISTER
+# -------------------------
+@app.get("/register", response_class=HTMLResponse)
+def register_page(request: Request):
+    return templates.TemplateResponse("register.html", {"request": request})
 
 
-@app.route("/login", methods=["GET", "POST"])
-def login():
-    if request.method == "POST":
-        email = request.form["email"].lower().strip()
-        password = request.form["password"]
+@app.post("/register")
+def register(
+    request: Request,
+    username: str = Form(...),
+    email: str = Form(...),
+    password: str = Form(...),
+    phone: str = Form(...),
+    db: Session = Depends(get_db)
+):
+    email = email.lower().strip()
 
-        conn = get_db()
-        cur = conn.cursor()
+    if db.query(User).filter(User.email == email).first():
+        return templates.TemplateResponse("register.html", {
+            "request": request,
+            "error": "Email already exists"
+        })
 
-        cur.execute("SELECT * FROM users WHERE email=?", (email,))
-        user = cur.fetchone()
-        conn.close()
-
-        if user and check_password_hash(user["password"], password):
-            session["user_id"] = user["id"]
-            session["username"] = user["username"]
-            return redirect(url_for("dashboard"))
-
-        flash("Invalid credentials", "error")
-
-    return render_template("login.html")
-
-
-@app.route("/profile")
-@login_required
-def profile():
-    conn = get_db()
-    cur = conn.cursor()
-
-    cur.execute("SELECT id, username, email, phone FROM users WHERE id=?", (session["user_id"],))
-    user = cur.fetchone()
-
-    conn.close()
-    return render_template("profile.html", user=user)
-
-
-@app.route("/update_profile", methods=["POST"])
-@login_required
-def update_profile():
-    username = request.form.get("username")
-    email = request.form.get("email")
-    phone = request.form.get("phone")
-
-    conn = get_db()
-    cur = conn.cursor()
-
-    cur.execute("""
-        UPDATE users
-        SET username=?, email=?, phone=?
-        WHERE id=?
-    """, (username, email, phone, session["user_id"]))
-
-    conn.commit()
-    conn.close()
-
-    session["username"] = username
-
-    flash("Profile updated successfully", "success")
-    return redirect(url_for("profile"))
-
-
-@app.route("/admin/login", methods=["GET", "POST"])
-def admin_login():
-    if request.method == "POST":
-        email = request.form["email"].lower().strip()
-        password = request.form["password"]
-
-        conn = get_db()
-        cur = conn.cursor()
-
-        cur.execute("SELECT * FROM admins WHERE email=?", (email,))
-        admin = cur.fetchone()
-        conn.close()
-
-        if admin and check_password_hash(admin["password"], password):
-            session.clear()
-            session["admin_id"] = admin["id"]
-            session["admin_name"] = admin["username"]
-            session["department"] = admin["department"]
-            return redirect(url_for("admin_dashboard"))
-
-        flash("Invalid admin credentials", "error")
-
-    return render_template("admin_login.html")
-
-@app.route("/admin/register", methods=["GET", "POST"])
-def admin_register():
-    if request.method == "POST":
-        username = request.form.get("username")
-        email = request.form.get("email").lower().strip()
-        password = generate_password_hash(request.form.get("password"))
-        department = request.form.get("department")
-
-        conn = get_db()
-        cur = conn.cursor()
-
-        cur.execute("SELECT id FROM admins WHERE email=?", (email,))
-        if cur.fetchone():
-            flash("Admin already exists", "error")
-            return redirect(url_for("admin_register"))
-
-        cur.execute("""
-            INSERT INTO admins (username, email, password, department)
-            VALUES (?, ?, ?, ?)
-        """, (username, email, password, department))
-
-        conn.commit()
-        conn.close()
-
-        flash("Admin registered successfully", "success")
-
-        # ✅ FORCE CORRECT ROUTE
-        return redirect(url_for("admin_login"))
-
-    return render_template("admin_register.html")
-@app.route("/admin/dashboard")
-@admin_required
-def admin_dashboard():
-    conn = get_db()
-    cur = conn.cursor()
-
-    cur.execute("""
-        SELECT * FROM complaints
-        WHERE LOWER(department)=LOWER(?)
-        ORDER BY timestamp DESC
-    """, (session["department"],))
-
-    complaints = cur.fetchall()
-    conn.close()
-
-    return render_template(
-        "admin_dashboard.html",
-        complaints=complaints,
-        admin_name=session.get("admin_name")
+    user = User(
+        username=username,
+        email=email,
+        password=generate_password_hash(password),
+        phone=phone
     )
 
+    db.add(user)
+    db.commit()
 
-@app.route("/submit", methods=["GET", "POST"])
-@login_required
-def submit_complaint():
-    if request.method == "POST":
-
-        text = request.form.get("complaint_text", "").strip()
-        address = request.form.get("address")
-        latitude = request.form.get("latitude")
-        longitude = request.form.get("longitude")
-        image = request.files.get("complaint_image")
-
-        if not text and not image:
-            flash("Enter complaint text or image", "error")
-            return redirect(url_for("submit_complaint"))
-
-        query = text if text else "image complaint"
-
-        category = predict_complaint(query)
-        category = safe_category(category)
-
-        department = CATEGORY_TO_DEPT.get(category, "municipal")
-
-        assigned_admin_id = get_assigned_admin(department)
-
-        rag = generate_rag_response(query)
-
-        image_path = save_image(image)
-
-        conn = get_db()
-        cur = conn.cursor()
-
-        cur.execute("""
-            INSERT INTO complaints (
-                user_id, complaint_text, category, department,
-                assigned_admin_id, address, latitude, longitude,
-                image_path, rag_solution, rag_cases
-            )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, (
-            session["user_id"],
-            text,
-            category,
-            department,
-            assigned_admin_id,
-            address,
-            latitude,
-            longitude,
-            image_path,
-            rag.get("final_solution", ""),
-            str(rag.get("similar_cases", []))
-        ))
-
-        conn.commit()
-        conn.close()
-
-        return redirect(url_for("dashboard"))
-
-    return render_template("index.html")
+    return templates.TemplateResponse("login.html", {
+        "request": request,
+        "success": "Account created successfully. Please login."
+    })
 
 
-@app.route("/dashboard")
-@login_required
-def dashboard():
-    conn = get_db()
-    cur = conn.cursor()
+# -------------------------
+# LOGIN
+# -------------------------
 
-    cur.execute("""
-        SELECT * FROM complaints
-        WHERE user_id=?
-        ORDER BY timestamp DESC
-    """, (session["user_id"],))
+@app.post("/login")
+def login(
+    request: Request,
+    email: str = Form(...),
+    password: str = Form(...),
+    db: Session = Depends(get_db)
+):
+    user = db.query(User).filter(User.email == email.lower().strip()).first()
 
-    complaints = cur.fetchall()
+    if user and check_password_hash(user.password, password):
+        request.session["user_id"] = user.id
+        request.session["username"] = user.username
+        return RedirectResponse("/dashboard", status_code=302)
 
-    cur.execute("""
-        SELECT COUNT(*) FROM complaints
-        WHERE user_id=?
-    """, (session["user_id"],))
+    return RedirectResponse("/login?registered=1", status_code=302)
+@app.get("/login", response_class=HTMLResponse)
+def login_page(request: Request):
+    return templates.TemplateResponse("login.html", {"request": request})
 
-    total = cur.fetchone()[0]
+# -------------------------
+# PROFILE
+# -------------------------
+@app.get("/profile", response_class=HTMLResponse)
+def profile(request: Request, db: Session = Depends(get_db)):
+    user_id = request.session.get("user_id")
 
-    conn.close()
+    if not user_id:
+        return RedirectResponse("/login")
 
-    return render_template(
-        "dashboard.html",
-        complaints=complaints,
-        total=total,
-        username=session.get("username")
+    user = db.query(User).filter(User.id == user_id).first()
+
+    return templates.TemplateResponse("profile.html", {
+        "request": request,
+        "user": user
+    })
+
+
+@app.post("/update_profile")
+def update_profile(
+    request: Request,
+    username: str = Form(...),
+    email: str = Form(...),
+    phone: str = Form(...),
+    db: Session = Depends(get_db)
+):
+    user_id = request.session.get("user_id")
+
+    if not user_id:
+        return RedirectResponse("/login", status_code=302)
+
+    user = db.query(User).filter(User.id == user_id).first()
+
+    if not user:
+        return RedirectResponse("/login", status_code=302)
+
+    # update
+    user.username = username
+    user.email = email.lower().strip()
+    user.phone = phone
+
+    db.commit()
+
+    request.session["username"] = username
+
+    return RedirectResponse("/profile", status_code=302)
+
+
+# -------------------------
+# ADMIN
+# -------------------------
+@app.get("/admin/login", response_class=HTMLResponse)
+def admin_login_page(request: Request):
+    return templates.TemplateResponse("admin_login.html", {"request": request})
+
+
+@app.post("/admin/login")
+def admin_login(
+    request: Request,
+    email: str = Form(...),
+    password: str = Form(...),
+    db: Session = Depends(get_db)
+):
+    admin = db.query(Admin).filter(Admin.email == email.lower().strip()).first()
+
+    if admin and check_password_hash(admin.password, password):
+        request.session.clear()
+        request.session["admin_id"] = admin.id
+        request.session["admin_name"] = admin.username
+        request.session["department"] = admin.department
+        return RedirectResponse("/admin/dashboard", status_code=302)
+
+    return templates.TemplateResponse("admin_login.html", {
+        "request": request,
+        "error": "Invalid credentials"
+    })
+
+
+@app.post("/admin/register")
+def admin_register(
+    request: Request,
+    username: str = Form(...),
+    email: str = Form(...),
+    password: str = Form(...),
+    department: str = Form(...),
+    db: Session = Depends(get_db)
+):
+    if db.query(Admin).filter(Admin.email == email).first():
+        return templates.TemplateResponse("admin_login.html", {
+            "request": request,
+            "error": "Admin already exists"
+        })
+
+    admin = Admin(
+        username=username,
+        email=email,
+        password=generate_password_hash(password),
+        department=department
     )
 
+    db.add(admin)
+    db.commit()
 
-@app.route("/logout")
-def logout():
-    session.clear()
-    return redirect(url_for("login"))
+    return RedirectResponse("/admin/login", status_code=302)
 
-if __name__ == "__main__":
-    init_db() 
-    app.run(debug=True, host="0.0.0.0", port=5000)
+@app.get("/admin/register", response_class=HTMLResponse)
+def admin_register_page(request: Request):
+    return templates.TemplateResponse("admin_register.html", {
+        "request": request
+    })
+
+@app.get("/admin/dashboard", response_class=HTMLResponse)
+def admin_dashboard(request: Request, db: Session = Depends(get_db)):
+
+    admin_id = request.session.get("admin_id")
+
+    if not admin_id:
+        return RedirectResponse("/admin/login")
+
+    complaints = db.query(Complaint).filter(
+        Complaint.assigned_admin_id == admin_id
+    ).order_by(Complaint.timestamp.desc()).all()
+
+    total = len(complaints)
+
+    pending = db.query(Complaint).filter(
+        Complaint.assigned_admin_id == admin_id,
+        Complaint.status == "pending"
+    ).count()
+
+    resolved = db.query(Complaint).filter(
+        Complaint.assigned_admin_id == admin_id,
+        Complaint.status == "resolved"
+    ).count()
+
+    in_progress = db.query(Complaint).filter(
+        Complaint.assigned_admin_id == admin_id,
+        Complaint.status == "in progress"
+    ).count()
+
+    return templates.TemplateResponse("admin_dashboard.html", {
+        "request": request,
+        "complaints": complaints,
+        "admin_name": request.session.get("admin_name"),
+        "total": total,
+        "pending": pending,
+        "resolved": resolved,
+        "in_progress": in_progress
+    })
+
+
+# -------------------------
+# COMPLAINT
+# -------------------------
+@app.get("/submit", response_class=HTMLResponse)
+def submit_page(request: Request):
+    user_id = request.session.get("user_id")
+
+    if not user_id:
+        return RedirectResponse("/login", status_code=302)
+
+    return templates.TemplateResponse("index.html", {
+        "request": request
+    })
+@app.post("/submit")
+def submit_complaint(
+    request: Request,
+    complaint_text: str = Form(""),
+    address: str = Form(""),
+    latitude: str = Form(""),
+    longitude: str = Form(""),
+    complaint_image: UploadFile = File(None),
+    db: Session = Depends(get_db),
+):
+    user_id = request.session.get("user_id")
+
+    if not user_id:
+        return RedirectResponse("/login")
+
+    if not complaint_text and not complaint_image:
+        return RedirectResponse("/dashboard")
+
+    query = complaint_text if complaint_text else "image complaint"
+
+    category = predict_complaint(query)
+    category = category.strip().title()
+
+    department = DEPT_MAPPING.get(category, "municipal")
+    assigned_admin_id = get_assigned_admin(department, db)
+
+    rag = generate_rag_response(query)
+
+    track_prediction(
+        confidence=rag.get("confidence", 0.5),
+        extra={
+            "category": category,
+            "department": department,
+            "text_length": len(query)
+        }
+    )
+
+    image_path = save_image(complaint_image)
+
+    complaint = Complaint(
+        user_id=user_id,
+        complaint_text=complaint_text,
+        category=category,
+        department=department,
+        assigned_admin_id=assigned_admin_id,
+        address=address,
+        latitude=latitude,
+        longitude=longitude,
+        image_path=image_path,
+        rag_solution=rag.get("final_solution", ""),
+        rag_cases=str(rag.get("similar_cases", []))
+    )
+
+    db.add(complaint)
+    db.commit()
+
+    return RedirectResponse("/dashboard", status_code=302)
+
+import json
+
+@app.get("/dashboard", response_class=HTMLResponse)
+def dashboard(request: Request, db: Session = Depends(get_db)):
+    user_id = request.session.get("user_id")
+
+    if not user_id:
+        return RedirectResponse("/login")
+
+    complaints = db.query(Complaint).filter(
+        Complaint.user_id == user_id
+    ).order_by(Complaint.timestamp.desc()).all()
+
+    total = len(complaints)
+
+    pending = db.query(Complaint).filter(
+        Complaint.user_id == user_id,
+        Complaint.status == "pending"
+    ).count()
+
+    progress = db.query(Complaint).filter(
+        Complaint.user_id == user_id,
+        Complaint.status == "in progress"
+    ).count()
+
+    resolved = db.query(Complaint).filter(
+        Complaint.user_id == user_id,
+        Complaint.status == "resolved"
+    ).count()
+
+    # OPTIONAL: attach latest RAG (safe parse)
+    rag_solution = None
+    rag_cases = []
+
+    if complaints:
+        last = complaints[0]
+
+        rag_solution = last.rag_solution
+
+        try:
+            rag_cases = json.loads(last.rag_cases) if last.rag_cases else []
+        except:
+            rag_cases = []
+
+    return templates.TemplateResponse("dashboard.html", {
+        "request": request,
+        "complaints": complaints,
+        "total": total,
+        "pending": pending,
+        "progress": progress,
+        "resolved": resolved,
+        "rag_solution": rag_solution,
+        "rag_cases": rag_cases,
+        "username": request.session.get("username")
+    })
+
+
+@app.get("/logout")
+def logout(request: Request):
+    request.session.clear()
+    return RedirectResponse("/login")

@@ -6,7 +6,6 @@
     <title>Dashboard | Nivada Smart Complaint System</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     
     <style>
         :root {
@@ -302,10 +301,10 @@
             <a href="/logout" class="btn-logout">Logout</a>
             <div class="user-profile">
                 <div class="avatar">
-                    {{ session.username[:2].upper() }}
+                    {{ username[:2].upper() }}
                 </div>
                 <span style="font-size: 0.9rem; font-weight: 500;">
-                    {{ session.username }}
+                    {{ username }}
                 </span>
             </div>
         </div>
@@ -315,12 +314,11 @@
         
         <section class="welcome-section">
             <div class="welcome-text">
-                <h1>Welcome, {{ session.username }}</h1>
+                <h1>Welcome, {{ username }}</h1>
                 <p>Track and manage your complaints efficiently.</p>
             </div>
             <a href="/submit" class="btn-primary">
-                <i class="fas fa-plus"></i>
-                Submit New Complaint
+                Submit First Complaint
             </a>
         </section>
 
@@ -372,7 +370,7 @@
                         {{ rag_solution }}
                     </p>
 
-                    {% if rag_cases and rag_cases[0].score %}
+                    {% if rag_cases and rag_cases[0].get('score') %}
                     <span style="
                         background:#e0f2fe;
                         color:#0369a1;
@@ -380,7 +378,7 @@
                         border-radius:20px;
                         font-size:0.8rem;
                         font-weight:600;">
-                        Confidence: {{ (rag_cases[0].score * 100) | round(1) }}%
+                        Confidence: {{ (rag_cases[0].get('score', 0) * 100) | round(1) }}%
                     </span>
                     {% endif %}
                 </div>
@@ -404,9 +402,9 @@
                         💡 {{ case.solution }}
                     </p>
 
-                    {% if case.score %}
+                    {% if case.get('score') %}
                     <span style="font-size:0.75rem; color:#64748b;">
-                        relevance: {{ (case.score * 100)|round(1) }}%
+                        relevance: {{ (case.get('score', 0) * 100)|round(1) }}%
                     </span>
                     {% endif %}
                 </div>
@@ -467,7 +465,9 @@
                     <h3>No complaints yet</h3>
                     <p>You haven't submitted any complaints. Submit your first one to get started.</p>
                     <br>
-                    <a href="/submit" class="btn-primary">Submit First Complaint</a>
+                    <a href="/submit" class="btn-primary">
+                        Submit First Complaint
+                    </a>
                 </div>
                 {% endif %}
             </div>
@@ -479,6 +479,5 @@
         <p>&copy; 2026 Nivada Smart Complaint Resolution System. All rights reserved.</p>
     </footer>
 
-    <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>

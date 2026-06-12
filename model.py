@@ -7,6 +7,16 @@ import pickle
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from sklearn.metrics import accuracy_score, precision_recall_fscore_support
+import random
+
+seed = 42
+random.seed(seed)
+np.random.seed(seed)
+torch.manual_seed(seed)
+
+import mlflow
+
+mlflow.set_experiment("complaint-classifier")
 
 from transformers import (
     AutoTokenizer,
@@ -43,8 +53,19 @@ train_texts, val_texts, train_labels, val_labels = train_test_split(
 
 tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
 
-train_enc = tokenizer(train_texts, truncation=True, max_length=64)
-val_enc = tokenizer(val_texts, truncation=True, max_length=64)
+train_enc = tokenizer(
+    train_texts,
+    truncation=True,
+    padding=True,
+    max_length=64
+)
+
+val_enc = tokenizer(
+    val_texts,
+    truncation=True,
+    padding=True,
+    max_length=64
+)
 
 class ComplaintDataset(torch.utils.data.Dataset):
     def __init__(self, encodings, labels):
@@ -77,8 +98,12 @@ def compute_metrics(eval_pred):
         average="weighted"
     )
 
+    acc = accuracy_score(labels, preds)
+
+    print(f"ACC: {acc:.4f} | F1: {f1:.4f}")
+
     return {
-        "accuracy": accuracy_score(labels, preds),
+        "accuracy": acc,
         "precision": precision,
         "recall": recall,
         "f1": f1
@@ -90,7 +115,7 @@ training_args = TrainingArguments(
 
     per_device_train_batch_size=8,
     per_device_eval_batch_size=8,
-
+ 
     evaluation_strategy="epoch",
     save_strategy="epoch",
 
@@ -117,12 +142,33 @@ trainer = Trainer(
     data_collator=data_collator,
     compute_metrics=compute_metrics
 )
+import mlflow
 
-trainer.train()
+mlflow.set_experiment("complaint-classifier")
 
-results = trainer.evaluate()
-print("Evaluation Results:", results)
+trainer = Trainer(
+    model=model,
+    args=training_args,
+    train_dataset=train_dataset,
+    eval_dataset=val_dataset,
+    tokenizer=tokenizer,
+    data_collator=data_collator,
+    compute_metrics=compute_metrics
+)
 
+with mlflow.start_run():
+
+    trainer.train()
+
+    results = trainer.evaluate()
+    print("Evaluation Results:", results)
+
+    mlflow.log_metric("accuracy", results["eval_accuracy"])
+    mlflow.log_metric("f1", results["eval_f1"])
+    mlflow.log_metric("precision", results["eval_precision"])
+    mlflow.log_metric("recall", results["eval_recall"])
+
+# SAVE ONLY ONCE
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 model.save_pretrained(OUTPUT_DIR)
@@ -132,4 +178,6 @@ with open(ENCODER_PATH, "wb") as f:
     pickle.dump(label_encoder, f)
 
 print("✅ MODEL TRAINING COMPLETE")
-print(f"📦 Saved to: {OUTPUT_DIR}")
+
+results = trainer.evaluate()
+print("Evaluation Results:", results)

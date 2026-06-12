@@ -541,27 +541,10 @@
             });
 
             const form = document.getElementById('complaintForm');
-            form.addEventListener('submit', function(e) {
-                const address = document.getElementById('address').value.trim();
-                const text = document.getElementById('complaint_text').value.trim();
-                const image = document.getElementById('complaint_image').files.length;
-
-                if (!address) {
-                    e.preventDefault();
-                    alert("Please enter a valid complaint address.");
-                    return;
-                }
-
-                if (!text && image === 0) {
-                    e.preventDefault();
-                    alert("Please provide either a description or an image of your complaint.");
-                    return;
-                }
-
-                const btn = this.querySelector('.submit-btn');
-                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyzing...';
-                btn.style.opacity = '0.7';
-                btn.disabled = true;
+            form.addEventListener('submit', () => {
+                const saveBtn = document.getElementById('saveBtn');
+                saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+                saveBtn.disabled = true;
             });
         });
 

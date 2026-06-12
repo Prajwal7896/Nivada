@@ -6,7 +6,6 @@
     <title>Login | Nivada Smart Complaint System</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     
     <style>
         :root {
@@ -254,17 +253,19 @@
         <main class="login-card">
             <h2>Welcome Back</h2>
             <p>Please enter your credentials to access your portal.</p>
+            {% if error %}
+            <div class="alert alert-danger">
+                <i class="fas fa-circle-exclamation"></i>
+                {{ error }}
+            </div>
+            {% endif %}
 
-            {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                    {% for category, message in messages %}
-                        <div class="alert alert-{{ category if category != 'error' else 'danger' }}">
-                            <i class="fas {{ 'fa-circle-check' if category == 'success' else 'fa-circle-exclamation' }}"></i>
-                            {{ message }}
-                        </div>
-                    {% endfor %}
-                {% endif %}
-            {% endwith %}
+            {% if success %}
+            <div class="alert alert-success">
+                <i class="fas fa-circle-check"></i>
+                {{ success }}
+            </div>
+            {% endif %}
 
             <form method="POST" action="/login">
                 <div class="form-group">
@@ -304,7 +305,7 @@
             </div>
         </main>
         <div class="register-link">
-            <a href="{{ url_for('admin_login') }}" style="color:#1E3A8A;font-weight:700;">
+            <a href="/admin/login" style="color:#1E3A8A;font-weight:700;">
                 Admin Login →
             </a>
         </div>
@@ -317,8 +318,6 @@
             </p>
         </footer>
     </div>
-
-    <script src="{{ url_for('static', filename='script.js') }}"></script>
     
     <script>
         const togglePassword = document.querySelector('#togglePassword');

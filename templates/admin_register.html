@@ -24,18 +24,19 @@
             <p class="text-slate-500 text-sm mt-2">Join the Smart AI Complaint Management Team</p>
         </div>
 
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                <div class="mb-6 p-4 rounded-lg flex items-center gap-3 {% if category == 'error' %}bg-red-50 text-red-700 border border-red-200{% else %}bg-green-50 text-green-700 border border-green-200{% endif %}">
-                    <i class="fas {% if category == 'error' %}fa-exclamation-circle{% else %}fa-check-circle{% endif %}"></i>
-                    <span class="text-sm font-medium">{{ message }}</span>
-                </div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
+        {% if error %}
+        <div class="mb-4 p-3 bg-red-100 text-red-700 rounded-lg text-sm">
+            {{ error }}
+        </div>
+        {% endif %}
 
-        <form action="{{ url_for('admin_register') }}" method="POST" class="space-y-5">
+        {% if success %}
+        <div class="mb-4 p-3 bg-green-100 text-green-700 rounded-lg text-sm">
+            {{ success }}
+        </div>
+        {% endif %}
+
+        <form action="/admin/register" method="POST" class="space-y-5">
             <div>
                 <label class="block text-sm font-semibold text-slate-700 mb-1">Full Name</label>
                 <div class="relative">
@@ -121,7 +122,7 @@
         <div class="mt-8 pt-6 border-t border-slate-100 text-center">
             <p class="text-sm text-slate-600">
                 Already registered? 
-                <a href="{{ url_for('admin_login') }}" class="text-blue-600 font-bold hover:underline">Login here</a>
+                <a href="/admin/login" class="text-blue-600 font-bold hover:underline">Login here</a>
             </p>
         </div>
     </div>

@@ -24,18 +24,9 @@
             <p class="text-slate-500 text-sm mt-2">Sign in to manage departmental complaints</p>
         </div>
 
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                <div class="mb-6 p-4 rounded-lg flex items-center gap-3 {% if category == 'error' %}bg-red-50 text-red-700 border border-red-200{% else %}bg-green-50 text-green-700 border border-green-200{% endif %}">
-                    <i class="fas {% if category == 'error' %}fa-exclamation-circle{% else %}fa-check-circle{% endif %}"></i>
-                    <span class="text-sm font-medium">{{ message }}</span>
-                </div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
+        
 
-        <form action="{{ url_for('admin_login') }}" method="POST" class="space-y-5">
+        <form action="/admin/login" method="POST" class="space-y-5">
             
             <div>
                 <label class="block text-sm font-semibold text-slate-700 mb-1">Your Department</label>
@@ -105,7 +96,7 @@
         <div class="mt-8 pt-6 border-t border-slate-100 text-center">
             <p class="text-sm text-slate-600">
                 New department head? 
-                <a href="{{ url_for('admin_register') }}" class="text-indigo-600 font-bold hover:underline">Register Admin</a>
+                <a href="/admin/register" class="text-indigo-600 font-bold hover:underline">Register Admin</a>
             </p>
         </div>
     </div>

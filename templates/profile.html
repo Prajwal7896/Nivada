@@ -395,72 +395,93 @@
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const form = document.getElementById('profileForm');
-            const editToggle = document.getElementById('editToggle');
-            const cancelBtn = document.getElementById('cancelBtn');
-            const initialsSpan = document.getElementById('initials');
-            const profilePreview = document.getElementById('profilePreview');
-            const imageInput = document.getElementById('imageInput');
-            const sidebarName = document.getElementById('sidebarName');
+    document.addEventListener('DOMContentLoaded', () => {
+        const form = document.getElementById('profileForm');
+        const editToggle = document.getElementById('editToggle');
+        const cancelBtn = document.getElementById('cancelBtn');
+        const initialsSpan = document.getElementById('initials');
+        const profilePreview = document.getElementById('profilePreview');
+        const imageInput = document.getElementById('imageInput');
+        const sidebarName = document.getElementById('sidebarName');
+        const saveBtn = document.getElementById('saveBtn');
 
-            const generateInitials = (name) => {
-                if (!name || name.startsWith('{')) return "JD";
-                const parts = name.split(/[._\s]/);
-                let initials = parts.length >= 2 ? parts[0][0] + parts[1][0] : parts[0].substring(0, 2);
-                return initials.toUpperCase();
-            };
-            initialsSpan.textContent = generateInitials("{{ user.username }}");
+        const generateInitials = (name) => {
+            if (!name) return "U";
+            const parts = name.split(" ");
+            return (parts[0][0] + (parts[1]?.[0] || "")).toUpperCase();
+        };
 
-            editToggle.addEventListener('click', () => {
-                form.classList.add('is-editing');
-                cancelBtn.style.display = 'inline-flex';
-            });
+        initialsSpan.textContent = generateInitials("{{ user.username }}");
 
-            cancelBtn.addEventListener('click', () => {
+        editToggle.addEventListener('click', () => {
+            form.classList.add('is-editing');
+            cancelBtn.style.display = 'inline-flex';
+        });
+
+        cancelBtn.addEventListener('click', () => {
+            form.classList.remove('is-editing');
+            cancelBtn.style.display = 'none';
+        });
+
+        // ✅ REAL BACKEND CONNECTION HERE
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+            saveBtn.disabled = true;
+
+            const formData = new FormData();
+            formData.append("username", document.getElementById('input-username').value);
+            formData.append("email", document.getElementById('input-email').value);
+            formData.append("phone", document.getElementById('input-phone').value);
+
+            try {
+                const res = await fetch("/update_profile", {
+                    method: "POST",
+                    body: formData
+                });
+
+                if (res.redirected) {
+                    window.location.href = res.url;
+                    return;
+                }
+
+                const newUsername = document.getElementById('input-username').value;
+                const newEmail = document.getElementById('input-email').value;
+                const newPhone = document.getElementById('input-phone').value;
+
+                document.getElementById('view-username').textContent = newUsername;
+                document.getElementById('view-email').textContent = newEmail;
+                document.getElementById('view-phone').textContent = newPhone || "+91 XXXXX XXXXX";
+                sidebarName.textContent = newUsername;
+                initialsSpan.textContent = generateInitials(newUsername);
+
                 form.classList.remove('is-editing');
                 cancelBtn.style.display = 'none';
-            });
 
-            form.addEventListener('submit', (e) => {
-                e.preventDefault();
-                const saveBtn = document.getElementById('saveBtn');
-                saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
-                saveBtn.disabled = true;
+            } catch (err) {
+                alert("Update failed!");
+                console.error(err);
+            }
 
-                setTimeout(() => {
-                    const newUsername = document.getElementById('input-username').value;
-                    const newEmail = document.getElementById('input-email').value;
-                    const newPhone = document.getElementById('input-phone').value;
-
-                    document.getElementById('view-username').textContent = newUsername;
-                    document.getElementById('view-email').textContent = newEmail;
-                    document.getElementById('view-phone').textContent = newPhone || '+91 98XXX XXXXX';
-                    sidebarName.textContent = newUsername;
-                    initialsSpan.textContent = generateInitials(newUsername);
-
-                    form.classList.remove('is-editing');
-                    cancelBtn.style.display = 'none';
-                    saveBtn.innerHTML = '<i class="fas fa-save"></i> Save Changes';
-                    saveBtn.disabled = false;
-
-                    console.log("Profile Updated Successfully");
-                }, 1000);
-            });
-
-            imageInput.addEventListener('change', function() {
-                const file = this.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        profilePreview.src = e.target.result;
-                        profilePreview.style.display = 'block';
-                        initialsSpan.style.display = 'none';
-                    }
-                    reader.readAsDataURL(file);
-                }
-            });
+            saveBtn.innerHTML = '<i class="fas fa-save"></i> Save Changes';
+            saveBtn.disabled = false;
         });
+
+        // preview image only (UI only - backend not connected yet)
+        imageInput.addEventListener('change', function () {
+            const file = this.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    profilePreview.src = e.target.result;
+                    profilePreview.style.display = 'block';
+                    initialsSpan.style.display = 'none';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    });
     </script>
 </body>
 </html>
