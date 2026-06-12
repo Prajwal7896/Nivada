@@ -1,4 +1,6 @@
-venv/
+model_out/
 fast_model/
-*.safetensors
+*.pt
+*.bin
+.venv/
 __pycache__/
