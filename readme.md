@@ -302,21 +302,22 @@ sentence-transformers
 
 # How to Run
 
-## Install Dependencies
+Commands
 
-```bash
+# Create virtual environment
+python -m venv .venv
+
+# Activate virtual environment (Windows)
+.venv\Scripts\activate
+
+# Install dependencies
 pip install -r requirements.txt
-```
 
----
+# Run model
+python model.py
 
-## Run Application
-
-```bash
-python app.py
-```
-
----
+# Start FastAPI server
+uvicorn main:app --reload
 
 # Conclusion
 
