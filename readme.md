@@ -4,7 +4,7 @@
 
 This project is an AI-based Complaint Management System that automatically classifies public complaints, assigns them to the correct department, and provides basic intelligent solutions using Retrieval-Augmented Generation (RAG).
 
-The system was built using Flask, DistilBERT, SQLite, and Sentence Transformers.
+The system was built using Fastapi, DistilBERT, postgres, and Sentence Transformers.
 
 The main goal of the project is to reduce manual complaint handling and improve response efficiency in government and public service departments.
 
@@ -18,9 +18,8 @@ The main goal of the project is to reduce manual complaint handling and improve 
 - Automatic Department Routing
 - Basic RAG-Based Solution Generation
 - Complaint Tracking Dashboard
-- Image Upload Support
 - Secure Password Hashing
-- SQLite Database Integration
+- postgres Database Integration
 
 ---
 
@@ -29,13 +28,12 @@ The main goal of the project is to reduce manual complaint handling and improve 
 | Technology | Purpose |
 |---|---|
 | Python | Backend Development |
-| Flask | Web Framework |
-| SQLite | Database |
+| fastapi | Web Framework |
+| postgres | Database |
 | DistilBERT | Complaint Classification |
 | Sentence Transformers | Semantic Search |
 | PyTorch | Deep Learning |
 | HTML/CSS | Frontend |
-| Flask-Session | Session Management |
 
 ---
 
@@ -255,8 +253,6 @@ CATEGORY_TO_DEPT = {
 # Security Features
 
 - Password hashing using Werkzeug
-- Session management using Flask-Session
-- Secure image uploads
 - File type validation
 
 ---
