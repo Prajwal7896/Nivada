@@ -284,19 +284,6 @@ The system provides:
 
 ---
 
-# Requirements
-
-```txt
-flask==3.0.3
-flask-session==0.6.0
-werkzeug==3.0.3
-torch==2.2.2
-transformers==4.41.2
-scikit-learn==1.5.0
-pandas==2.2.2
-numpy==1.26.4
-sentence-transformers
-```
 
 ---
 
