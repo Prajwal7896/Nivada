@@ -21,9 +21,6 @@ from transformers import DistilBertTokenizer, DistilBertForSequenceClassificatio
 from rag import generate_rag_response
 
 
-# =========================
-# APP SETUP
-# =========================
 app = FastAPI()
 
 app.add_middleware(
@@ -34,9 +31,6 @@ app.add_middleware(
 templates = Jinja2Templates(directory="templates")
 
 
-# =========================
-# DATABASE
-# =========================
 DATABASE_URL = os.getenv(
     "DATABASE_URL",
     "postgresql+psycopg2://postgres:sage7896@127.0.0.1:5432/nivada"
@@ -96,9 +90,6 @@ class Complaint(Base):
 Base.metadata.create_all(bind=engine)
 
 
-# =========================
-# DB SESSION
-# =========================
 def get_db():
     db = SessionLocal()
     try:
@@ -107,36 +98,26 @@ def get_db():
         db.close()
 
 
-# =========================
-# CATEGORY MAP
-# =========================
 DEPT_MAPPING = {
-    # Electricity group
     "Electricity": "electricity",
     "Power Outage": "electricity",
     "Network": "electricity",
 
-    # Water group
     "Water": "water",
     "Water Supply": "water",
     "Water Leakage": "water",
 
-    # Municipal / Infrastructure
     "Road": "municipal",
     "Infrastructure": "municipal",
     "Sanitation": "municipal",
 
-    # Transport
     "Transport": "transport",
 
-    # Police
     "Crime": "police",
     "Theft": "police",
 
-    # Health
     "Health": "health",
 
-    # Environment
     "Environment": "environment",
 }
 
@@ -145,9 +126,6 @@ ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg"}
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
-# =========================
-# ML MODEL
-# =========================
 MODEL_PATH = "fast_model/"
 ENCODER_PATH = "label_encoder.pkl"
 
@@ -167,9 +145,6 @@ except Exception as e:
     label_encoder = None
 
 
-# =========================
-# HELPERS
-# =========================
 def allowed_file(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
@@ -221,18 +196,12 @@ def get_assigned_admin(department, db):
     return admin.id if admin else None
 
 
-# =========================
-# ROUTES
-# =========================
 
 @app.get("/")
 def home():
     return RedirectResponse("/login")
 
 
-# -------------------------
-# REGISTER
-# -------------------------
 @app.get("/register", response_class=HTMLResponse)
 def register_page(request: Request):
     return templates.TemplateResponse("register.html", {"request": request})
@@ -271,9 +240,6 @@ def register(
     })
 
 
-# -------------------------
-# LOGIN
-# -------------------------
 
 @app.post("/login")
 def login(
@@ -294,9 +260,6 @@ def login(
 def login_page(request: Request):
     return templates.TemplateResponse("login.html", {"request": request})
 
-# -------------------------
-# PROFILE
-# -------------------------
 @app.get("/profile", response_class=HTMLResponse)
 def profile(request: Request, db: Session = Depends(get_db)):
     user_id = request.session.get("user_id")
@@ -330,7 +293,6 @@ def update_profile(
     if not user:
         return RedirectResponse("/login", status_code=302)
 
-    # update
     user.username = username
     user.email = email.lower().strip()
     user.phone = phone
@@ -342,9 +304,6 @@ def update_profile(
     return RedirectResponse("/profile", status_code=302)
 
 
-# -------------------------
-# ADMIN
-# -------------------------
 @app.get("/admin/login", response_class=HTMLResponse)
 def admin_login_page(request: Request):
     return templates.TemplateResponse("admin_login.html", {"request": request})
@@ -445,9 +404,6 @@ def admin_dashboard(request: Request, db: Session = Depends(get_db)):
     })
 
 
-# -------------------------
-# COMPLAINT
-# -------------------------
 @app.get("/submit", response_class=HTMLResponse)
 def submit_page(request: Request):
     user_id = request.session.get("user_id")
@@ -546,7 +502,6 @@ def dashboard(request: Request, db: Session = Depends(get_db)):
         Complaint.status == "resolved"
     ).count()
 
-    # OPTIONAL: attach latest RAG (safe parse)
     rag_solution = None
     rag_cases = []
 
