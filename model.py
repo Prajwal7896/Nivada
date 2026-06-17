@@ -168,7 +168,6 @@ with mlflow.start_run():
     mlflow.log_metric("precision", results["eval_precision"])
     mlflow.log_metric("recall", results["eval_recall"])
 
-# SAVE ONLY ONCE
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 model.save_pretrained(OUTPUT_DIR)
