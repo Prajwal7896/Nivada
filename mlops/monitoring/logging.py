@@ -1,4 +1,4 @@
-import datetime
+8import datetime
 import json
 import os
 
@@ -18,10 +18,9 @@ def log_event(event, data):
         "data": data
     }
 
-    # 1. Console output (for dev)
+
     print(f"[{log_entry['timestamp']}] {event} → {data}")
 
-    # 2. Persistent log file (for ML monitoring)
     with open(LOG_FILE, "a") as f:
         f.write(json.dumps(log_entry) + "\n")
 
