@@ -1,4 +1,4 @@
-version: "3.9"
+version: "3.11.9"
 
 services:
   app:
@@ -8,14 +8,14 @@ services:
     depends_on:
       - db
     environment:
-      - DATABASE_URL=postgresql://postgres:postgres@db:5432/nivada
+      - DATABASE_URL=postgresql://postgres:sage7896@db:5432/nivada
 
   db:
     image: postgres:15
     restart: always
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: sage7896
+      POSTGRES_PASSWORD: sage@7896
       POSTGRES_DB: nivada
     ports:
       - "5432:5432"
