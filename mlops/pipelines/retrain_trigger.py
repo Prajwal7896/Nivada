@@ -2,7 +2,6 @@ import os
 import random
 
 def check_model_health():
-    # simulate accuracy metric (replace later with real metric)
     accuracy = random.uniform(0.7, 0.95)
 
     print("📊 Current Accuracy:", accuracy)
