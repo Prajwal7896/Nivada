@@ -126,10 +126,10 @@ try:
     tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
 
     model = ORTModelForSequenceClassification.from_pretrained(
-        MODEL_PATH,
-        file_name="model.onnx"
-    )
-
+    MODEL_PATH,
+    file_name="model.onnx",
+    provider="CPUExecutionProvider"
+)
     with open(ENCODER_PATH, "rb") as f:
         label_encoder = pickle.load(f)
 
