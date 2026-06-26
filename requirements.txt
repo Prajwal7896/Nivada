@@ -15,7 +15,8 @@ python-dotenv==1.0.1
 huggingface_hub==0.23.4
 tokenizers==0.19.1
 
-optimum[onnxruntime]==1.20.0
+optimum==1.20.0
+onnxruntime==1.18.1
 
 gunicorn==22.0.0
 numpy==1.26.4
