@@ -18,9 +18,6 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 from transformers import DistilBertTokenizer, DistilBertForSequenceClassification
 
-from rag import generate_rag_response
-
-
 app = FastAPI()
 
 app.add_middleware(
@@ -79,9 +76,6 @@ class Complaint(Base):
     longitude = Column(String)
 
     image_path = Column(Text)
-
-    rag_solution = Column(Text)
-    rag_cases = Column(Text)
 
     status = Column(String, default="pending")
     timestamp = Column(TIMESTAMP, server_default=func.now())
@@ -440,10 +434,8 @@ def submit_complaint(
     department = DEPT_MAPPING.get(category, "municipal")
     assigned_admin_id = get_assigned_admin(department, db)
 
-    rag = generate_rag_response(query)
-
     track_prediction(
-        confidence=rag.get("confidence", 0.5),
+        confidence=1.0,
         extra={
             "category": category,
             "department": department,
@@ -462,9 +454,7 @@ def submit_complaint(
         address=address,
         latitude=latitude,
         longitude=longitude,
-        image_path=image_path,
-        rag_solution=rag.get("final_solution", ""),
-        rag_cases=str(rag.get("similar_cases", []))
+        image_path=image_path
     )
 
     db.add(complaint)
@@ -472,7 +462,6 @@ def submit_complaint(
 
     return RedirectResponse("/dashboard", status_code=302)
 
-import json
 
 @app.get("/dashboard", response_class=HTMLResponse)
 def dashboard(request: Request, db: Session = Depends(get_db)):
@@ -502,19 +491,6 @@ def dashboard(request: Request, db: Session = Depends(get_db)):
         Complaint.status == "resolved"
     ).count()
 
-    rag_solution = None
-    rag_cases = []
-
-    if complaints:
-        last = complaints[0]
-
-        rag_solution = last.rag_solution
-
-        try:
-            rag_cases = json.loads(last.rag_cases) if last.rag_cases else []
-        except:
-            rag_cases = []
-
     return templates.TemplateResponse("dashboard.html", {
         "request": request,
         "complaints": complaints,
@@ -522,8 +498,6 @@ def dashboard(request: Request, db: Session = Depends(get_db)):
         "pending": pending,
         "progress": progress,
         "resolved": resolved,
-        "rag_solution": rag_solution,
-        "rag_cases": rag_cases,
         "username": request.session.get("username")
     })
 
