@@ -14,8 +14,9 @@ psycopg2-binary==2.9.9
 python-dotenv==1.0.1
 
 numpy==1.26.4
+onnx==1.16.0
 onnxruntime==1.18.1
-
+optimum==1.20.0
 transformers==4.41.2
 tokenizers==0.19.1
 huggingface_hub==0.23.4
