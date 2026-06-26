@@ -1,7 +1,6 @@
 import os
 import uuid
 import pickle
-import torch
 
 from fastapi import FastAPI, Request, Form, UploadFile, File, Depends
 from fastapi.responses import HTMLResponse, RedirectResponse
@@ -9,7 +8,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from monitoring_service import track_prediction
 from starlette.middleware.sessions import SessionMiddleware
-
+from optimum.onnxruntime import ORTModelForSequenceClassification
 from sqlalchemy import create_engine, Column, Integer, String, Text, TIMESTAMP
 from sqlalchemy.orm import sessionmaker, declarative_base, Session
 from sqlalchemy.sql import func
@@ -117,15 +116,13 @@ DEPT_MAPPING = {
 
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg"}
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-
-MODEL_PATH = "fast_model/"
+MODEL_PATH = "sage7896/new_repo"
 ENCODER_PATH = "label_encoder.pkl"
 
 try:
-    tokenizer = DistilBertTokenizer.from_pretrained(MODEL_PATH)
-    model = DistilBertForSequenceClassification.from_pretrained(MODEL_PATH)
+    tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
+    model = ORTModelForSequenceClassification.from_pretrained(MODEL_PATH)
     model.to(device)
     model.eval()
 
@@ -172,17 +169,14 @@ def predict_complaint(text):
         truncation=True,
         padding=True,
         max_length=64
-    ).to(device)
+    )
 
-    with torch.no_grad():
-        outputs = model(**inputs)
-        probs = torch.softmax(outputs.logits, dim=1)
-        confidence, pred = torch.max(probs, dim=1)
+    outputs = model(**inputs)
+    logits = outputs.logits
+    probs = logits.softmax(dim=1)
+    pred = probs.argmax(dim=1).item()
 
-    if confidence.item() < 0.60:
-        return "Other"
-
-    return label_encoder.inverse_transform([pred.item()])[0]
+    return label_encoder.inverse_transform([pred])[0]
 
 
 def get_assigned_admin(department, db):
