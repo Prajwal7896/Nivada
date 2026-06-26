@@ -1,12 +1,12 @@
 import os
 import uuid
 import pickle
-
+import numpy as np
+from dotenv import load_dotenv
 from fastapi import FastAPI, Request, Form, UploadFile, File, Depends
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from monitoring_service import track_prediction
 from starlette.middleware.sessions import SessionMiddleware
 from sqlalchemy import create_engine, Column, Integer, String, Text, TIMESTAMP
 from sqlalchemy.orm import sessionmaker, declarative_base, Session
@@ -24,9 +24,14 @@ app.add_middleware(
 templates = Jinja2Templates(directory="templates")
 
 
+load_dotenv()
+
 DATABASE_URL = os.getenv("DATABASE_URL")
 
-if DATABASE_URL and DATABASE_URL.startswith("postgres://"):
+if not DATABASE_URL:
+    raise ValueError("DATABASE_URL missing")
+
+if DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+psycopg2://", 1)
     
 engine = create_engine(
@@ -134,7 +139,6 @@ except Exception as e:
     model = None
     label_encoder = None
 
-
 def allowed_file(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
@@ -158,23 +162,26 @@ def save_image(image):
     return path
 
 
+def softmax(x):
+    x = x - np.max(x, axis=1, keepdims=True)
+    e_x = np.exp(x)
+    return e_x / np.sum(e_x, axis=1, keepdims=True)
+
+
 def predict_complaint(text):
     if not model or not tokenizer:
         return "Other"
 
     inputs = tokenizer(
         text,
-        return_tensors="np",   # IMPORTANT: numpy, not torch
+        return_tensors="np",
         truncation=True,
         padding=True,
         max_length=64
     )
 
-    outputs = model(**inputs)
-    logits = outputs.logits
-
-    import numpy as np
-    probs = np.exp(logits) / np.sum(np.exp(logits), axis=1, keepdims=True)
+    logits = model(**inputs).logits
+    probs = softmax(logits)
     pred = np.argmax(probs, axis=1)[0]
 
     return label_encoder.inverse_transform([pred])[0]
@@ -428,14 +435,7 @@ def submit_complaint(
     department = DEPT_MAPPING.get(category, "municipal")
     assigned_admin_id = get_assigned_admin(department, db)
 
-    track_prediction(
-        confidence=1.0,
-        extra={
-            "category": category,
-            "department": department,
-            "text_length": len(query)
-        }
-    )
+    print("Logged:", category, department)
 
     image_path = save_image(complaint_image)
 
