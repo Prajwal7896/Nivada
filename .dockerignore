@@ -1,8 +1,0 @@
-__pycache__
-*.pyc
-.venv
-.env
-mlops/__pycache__
-model_out
-fast_model
-.git
