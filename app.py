@@ -1,4 +1,6 @@
 import os
+os.environ["CUDA_VISIBLE_DEVICES"] = ""
+
 import uuid
 import pickle
 import numpy as np
@@ -11,11 +13,10 @@ from starlette.middleware.sessions import SessionMiddleware
 from sqlalchemy import create_engine, Column, Integer, String, Text, TIMESTAMP
 from sqlalchemy.orm import sessionmaker, declarative_base, Session
 from sqlalchemy.sql import func
-from optimum.onnxruntime import ORTModelForSequenceClassification , SessionOptions, get_available_providers
-from transformers import AutoTokenizer
+from optimum.onnxruntime import ORTModelForSequenceClassification
+from onnxruntime import SessionOptions, get_available_providersfrom transformers import AutoTokenizer
 from werkzeug.security import generate_password_hash, check_password_hash
 app = FastAPI()
-os.environ["CUDA_VISIBLE_DEVICES"] = ""
 app.add_middleware(
     SessionMiddleware,
     secret_key=os.getenv("SECRET_KEY", "dev_key")
