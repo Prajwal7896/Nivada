@@ -18,3 +18,4 @@ tokenizers==0.19.1
 onnxruntime==1.18.0
 
 gunicorn==22.0.0
+numpy==1.26.4
