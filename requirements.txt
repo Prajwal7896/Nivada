@@ -17,6 +17,6 @@ tokenizers==0.19.1
 
 optimum==1.20.0
 onnxruntime==1.18.1
-
+transformers==4.41.2
 numpy==1.26.4
 gunicorn==22.0.0
