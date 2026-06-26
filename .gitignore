@@ -1,8 +1,0 @@
-complaint_ai_model/
-model_out/
-fast_model/
-*.safetensors
-*.pt
-*.bin
-.venv/
-__pycache__/
