@@ -1,8 +1,8 @@
 import os
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
-os.environ["ORT_LOG_SEVERITY_LEVEL"] = "3"
-os.environ["OMP_NUM_THREADS"] = "1"
+os.environ["CUDA_VISIBLE_DEVICES"] = ""
+os.environ["ORT_DISABLE_GPU"] = "1"
+os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 import uuid
@@ -18,6 +18,7 @@ from sqlalchemy import create_engine, Column, Integer, String, Text, TIMESTAMP
 from sqlalchemy.orm import sessionmaker, declarative_base, Session
 from sqlalchemy.sql import func
 from optimum.onnxruntime import ORTModelForSequenceClassification
+from onnxruntime import SessionOptions, get_available_providers
 from transformers import AutoTokenizer
 
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -131,10 +132,13 @@ ENCODER_PATH = "label_encoder.pkl"
 try:
     tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
 
+    session_options = SessionOptions()
+
     model = ORTModelForSequenceClassification.from_pretrained(
         MODEL_PATH,
         file_name="model.onnx",
-        provider="CPUExecutionProvider"
+        provider="CPUExecutionProvider",
+        session_options=session_options
     )
     with open(ENCODER_PATH, "rb") as f:
         label_encoder = pickle.load(f)
