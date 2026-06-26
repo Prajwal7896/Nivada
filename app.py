@@ -8,15 +8,12 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from monitoring_service import track_prediction
 from starlette.middleware.sessions import SessionMiddleware
-from optimum.onnxruntime import ORTModelForSequenceClassification
 from sqlalchemy import create_engine, Column, Integer, String, Text, TIMESTAMP
 from sqlalchemy.orm import sessionmaker, declarative_base, Session
 from sqlalchemy.sql import func
-
+from optimum.onnxruntime import ORTModelForSequenceClassification
+from transformers import AutoTokenizer
 from werkzeug.security import generate_password_hash, check_password_hash
-
-from transformers import DistilBertTokenizer, DistilBertForSequenceClassification
-
 app = FastAPI()
 
 app.add_middleware(
@@ -27,11 +24,11 @@ app.add_middleware(
 templates = Jinja2Templates(directory="templates")
 
 
-DATABASE_URL = os.getenv(
-    "DATABASE_URL",
-    "postgresql+psycopg2://postgres:sage7896@127.0.0.1:5432/nivada"
-)
+DATABASE_URL = os.getenv("DATABASE_URL")
 
+if DATABASE_URL and DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+psycopg2://", 1)
+    
 engine = create_engine(
     DATABASE_URL,
     echo=True,
@@ -122,9 +119,11 @@ ENCODER_PATH = "label_encoder.pkl"
 
 try:
     tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
-    model = ORTModelForSequenceClassification.from_pretrained(MODEL_PATH)
-    model.to(device)
-    model.eval()
+
+    model = ORTModelForSequenceClassification.from_pretrained(
+        MODEL_PATH,
+        file_name="model.onnx"
+    )
 
     with open(ENCODER_PATH, "rb") as f:
         label_encoder = pickle.load(f)
@@ -165,7 +164,7 @@ def predict_complaint(text):
 
     inputs = tokenizer(
         text,
-        return_tensors="pt",
+        return_tensors="np",   # IMPORTANT: numpy, not torch
         truncation=True,
         padding=True,
         max_length=64
@@ -173,11 +172,12 @@ def predict_complaint(text):
 
     outputs = model(**inputs)
     logits = outputs.logits
-    probs = logits.softmax(dim=1)
-    pred = probs.argmax(dim=1).item()
+
+    import numpy as np
+    probs = np.exp(logits) / np.sum(np.exp(logits), axis=1, keepdims=True)
+    pred = np.argmax(probs, axis=1)[0]
 
     return label_encoder.inverse_transform([pred])[0]
-
 
 def get_assigned_admin(department, db):
     admin = db.query(Admin).filter(Admin.department.ilike(department)).first()
