@@ -1,8 +1,10 @@
 import os
+from dotenv import load_dotenv
 
-os.environ["CUDA_VISIBLE_DEVICES"] = ""
+load_dotenv()
+
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 os.environ["ORT_DISABLE_GPU"] = "1"
-os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 import uuid
@@ -29,9 +31,6 @@ app.add_middleware(
 )
 
 templates = Jinja2Templates(directory="templates")
-
-
-load_dotenv()
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 
@@ -134,6 +133,8 @@ try:
 
     session_options = SessionOptions()
 
+    print(get_available_providers())
+    
     model = ORTModelForSequenceClassification.from_pretrained(
         MODEL_PATH,
         file_name="model.onnx",
@@ -144,7 +145,9 @@ try:
         label_encoder = pickle.load(f)
 
 except Exception as e:
-    print("MODEL LOAD ERROR:", e)
+    import traceback
+    traceback.print_exc()
+
     tokenizer = None
     model = None
     label_encoder = None
@@ -190,7 +193,12 @@ def predict_complaint(text):
         max_length=64
     )
 
-    logits = model(**inputs).logits
+    outputs = model(**inputs)
+
+    if outputs is None:
+        return "Other"
+    
+    logits = outputs.logits
     probs = softmax(logits)
     pred = np.argmax(probs, axis=1)[0]
 
