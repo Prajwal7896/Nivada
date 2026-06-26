@@ -279,14 +279,6 @@
             .welcome-section { flex-direction: column; align-items: flex-start; gap: 20px; }
             .btn-primary { width: 100%; justify-content: center; }
         }
-        .similar-case {
-            transition: 0.3s;
-        }
-
-        .similar-case:hover {
-            background: #f8fafc;
-            border-radius: 8px;
-        }
     </style>
 </head>
 <body>
@@ -357,61 +349,7 @@
             </div>
 
         </section>
-        
-        {% if rag_solution %}
-        <section class="content-card" style="margin-top: 30px;">
-            <div class="card-header">
-                <h2><i class="fas fa-robot"></i> AI Suggested Solution</h2>
-            </div>
-
-            <div style="padding: 20px;">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <p style="font-weight:600; color:var(--primary-blue); font-size:1.1rem;">
-                        {{ rag_solution }}
-                    </p>
-
-                    {% if rag_cases and rag_cases[0].get('score') %}
-                    <span style="
-                        background:#e0f2fe;
-                        color:#0369a1;
-                        padding:6px 12px;
-                        border-radius:20px;
-                        font-size:0.8rem;
-                        font-weight:600;">
-                        Confidence: {{ (rag_cases[0].get('score', 0) * 100) | round(1) }}%
-                    </span>
-                    {% endif %}
-                </div>
-            </div>
-        </section>
-        {% endif %}
-        {% if rag_cases %}
-        <section class="content-card" style="margin-top: 20px;">
-            <div class="card-header">
-                <h2><i class="fas fa-history"></i> Similar Past Complaints</h2>
-            </div>
-
-            <div style="padding: 20px;">
-                {% for case in rag_cases %}
-                <div class="similar-case"
-                    style="padding:12px; margin-bottom:12px; border-left:4px solid #1E3A8A; background:#f8fafc; border-radius:8px;">
-
-                    <p style="font-weight:600;">🧾 {{ case.complaint }}</p>
-
-                    <p style="color:#10B981; margin-top:5px;">
-                        💡 {{ case.solution }}
-                    </p>
-
-                    {% if case.get('score') %}
-                    <span style="font-size:0.75rem; color:#64748b;">
-                        relevance: {{ (case.get('score', 0) * 100)|round(1) }}%
-                    </span>
-                    {% endif %}
-                </div>
-                {% endfor %}
-            </div>
-        </section>
-        {% endif %}
+       
         <section class="content-card">
             <div class="card-header">
                 <h2>Recent Complaints</h2>
